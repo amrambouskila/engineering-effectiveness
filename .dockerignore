@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.gitignore
+.claude
+.env
+.env.*
+*.md
+!frontend/README.md
+docs/
+coverage/
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+effectiveness.jsx

@@ -1,0 +1,42 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Claude state
+.claude/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+.pnpm-debug.log*
+
+# Python (Phase 2+)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+*.egg-info/
+
+# Test coverage
+coverage/
+*.lcov
+
+# Docker overrides
+docker-compose.override.yml
+
+# Build artifacts
+*.log
+*.tmp
