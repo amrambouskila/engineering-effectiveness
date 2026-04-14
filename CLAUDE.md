@@ -36,7 +36,7 @@ The radar compresses project delivery history into five composite scores. Each s
 - **Project:** Engineering Effectiveness (Effectiveness Radar)
 - **Purpose:** Measure and visualize team delivery capability across five axes: Speed, Accuracy, Defense, Strength, Endurance
 - **Master plan:** `ENGINEERING_EFFECTIVENESS_MASTER_PLAN.md` (project root)
-- **Location:** `/Users/amrambouskila/IMPORTANT/Projects/engineering-effectiveness/`
+- **Location:** `engineering-effectiveness/`
 - **Existing artifact:** `effectiveness.jsx` — Phase 1 prototype visualization (JSX, pre-TypeScript). Reference for scoring logic and UI layout, but will be rewritten in TypeScript strict.
 
 ---
