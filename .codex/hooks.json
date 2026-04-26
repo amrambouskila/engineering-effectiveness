@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "EDITED_FILE=\"$TOOL_INPUT_FILE_PATH\" && case \"$EDITED_FILE\" in *.env*|*credentials*|*secrets*|*.pem|*.key|*.p12) echo '{\"decision\":\"block\",\"reason\":\"Sensitive file detected. Confirm with user before writing.\"}' ;; *) ;; esac",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "EDITED_FILE=$(jq -r '.tool_input.file_path // empty') && case \"$EDITED_FILE\" in */scoring/*) echo 'SCORING LOGIC EDITED: '\"$EDITED_FILE\" && echo '' && echo 'Before continuing, verify:' && echo '  1. All constants come from scoringConstants.ts (no magic numbers)' && echo '  2. Formula matches AGENTS.md Section 5 exactly' && echo '  3. clamp applied correctly (0-100 range)' && echo '  4. Corresponding test updated in tests/unit/scoring/' && echo '  5. Pure function - no side effects, no state access' ;; */types/*) echo 'TYPE DEFINITION EDITED: '\"$EDITED_FILE\" && echo '' && echo 'Data contract change detected. Verify:' && echo '  1. Change approved per AGENTS.md Section 4' && echo '  2. Master plan updated if interface shape changed' && echo '  3. All consumers updated to match' ;; */stores/*) echo 'STORE EDITED: '\"$EDITED_FILE\" && echo '' && echo 'Verify:' && echo '  1. localStorage persistence still works' && echo '  2. No derived state stored - compute from source data' && echo '  3. Zustand middleware chain intact' ;; *) ;; esac",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '=== SESSION END CHECK ===' && CHANGED=$(git diff --name-only 2>/dev/null) && STAGED=$(git diff --cached --name-only 2>/dev/null) && if [ -n \"$CHANGED\" ] || [ -n \"$STAGED\" ]; then echo 'UNCOMMITTED CHANGES DETECTED:' && echo \"$CHANGED\" && echo \"$STAGED\" && echo '' && DOCS_TOUCHED=false && echo \"$CHANGED $STAGED\" | grep -q 'docs/' && DOCS_TOUCHED=true; if [ \"$DOCS_TOUCHED\" = false ]; then echo 'WARNING: Files changed but docs/ not updated.' && echo 'Consider updating: status.md, versions.md'; fi; else echo 'No uncommitted changes.'; fi",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\":\"SESSION END \u2014 MEMORY REVIEW: Check ~/.codex/memories/-Users-amrambouskila-IMPORTANT-Projects-engineering-effectiveness/memory/MEMORY.md first to avoid duplicates. Save corrections, confirmed approaches (with WHY), project decisions driven by external factors. NOT worth saving: anything derivable from code, debugging solutions, ephemeral details, things already in AGENTS.md.\"}'",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
+  }
+}
