@@ -5,7 +5,7 @@ REM ============================================================
 REM              CONFIGURATION (EDIT THESE ONLY)
 REM ============================================================
 set "COMPOSE_FILE=docker-compose.yml"
-if not defined EE_PORT set "EE_PORT=5173"
+if not defined EE_PORT set "EE_PORT=5230"
 set "PORT=%EE_PORT%"
 set "URL=http://localhost:%PORT%"
 

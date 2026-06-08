@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>engineering-effectiveness — Project Documentation</title>
+  <style>
+/* ============================================================================
+   doc.css — Shared design system for project documentation pages.
+   One source of truth for every project's PROJECT_DOCUMENTATION.html.
+   Inlined directly into this PROJECT_DOCUMENTATION.html (self-contained; no external stylesheet).
+   Do not fork per-project styles. Restyle here to restyle every project at once.
+   ============================================================================ */
+
+/* ---- Theme tokens ------------------------------------------------------- */
+:root {
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --accent-border: #c7d2fe;
+  --accent-text: #4338ca;
+
+  --bg: #ffffff;
+  --bg-alt: #f7f8fa;
+  --panel: #ffffff;
+  --panel-alt: #f3f4f6;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --text: #1f2937;
+  --text-soft: #374151;
+  --muted: #6b7280;
+
+  --code-bg: #f6f8fa;
+  --code-text: #1f2937;
+  --code-border: #e5e7eb;
+
+  --fileref-bg: #eef2ff;
+  --fileref-text: #3730a3;
+  --fileref-border: #c7d2fe;
+
+  --note-bg: #eff6ff;   --note-border: #3b82f6;   --note-text: #1e40af;
+  --tip-bg: #ecfdf5;    --tip-border: #10b981;    --tip-text: #065f46;
+  --warn-bg: #fffbeb;   --warn-border: #f59e0b;   --warn-text: #92400e;
+  --key-bg: #faf5ff;    --key-border: #a855f7;    --key-text: #6b21a8;
+  --danger-bg: #fef2f2; --danger-border: #ef4444; --danger-text: #991b1b;
+
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+  --shadow-lg: 0 10px 30px rgba(16,24,40,.12);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --header-h: 64px;
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --maxw: 980px;
+}
+
+:root[data-theme="dark"] {
+  --accent: #818cf8;
+  --accent-soft: #1e213a;
+  --accent-border: #3b3f6b;
+  --accent-text: #a5b4fc;
+
+  --bg: #0d1117;
+  --bg-alt: #0a0d12;
+  --panel: #161b22;
+  --panel-alt: #1c2230;
+  --border: #2d333b;
+  --border-strong: #3d444d;
+  --text: #e6edf3;
+  --text-soft: #c9d1d9;
+  --muted: #8b949e;
+
+  --code-bg: #161b22;
+  --code-text: #e6edf3;
+  --code-border: #30363d;
+
+  --fileref-bg: #1e213a;
+  --fileref-text: #c7d2fe;
+  --fileref-border: #3b3f6b;
+
+  --note-bg: #0d2138;   --note-border: #3b82f6;   --note-text: #93c5fd;
+  --tip-bg: #082a1e;    --tip-border: #10b981;    --tip-text: #6ee7b7;
+  --warn-bg: #2b2410;   --warn-border: #f59e0b;   --warn-text: #fcd34d;
+  --key-bg: #221033;    --key-border: #a855f7;    --key-text: #d8b4fe;
+  --danger-bg: #2c1212; --danger-border: #ef4444; --danger-text: #fca5a5;
+
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.4);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,.5);
+}
+
+/* ---- Base --------------------------------------------------------------- */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg-alt);
+  color: var(--text);
+  line-height: 1.65;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent-text); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { line-height: 1.25; color: var(--text); }
+p { margin: 0 0 1rem; }
+hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+/* ---- Scroll progress bar ------------------------------------------------ */
+#scrollProgress {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+  background: linear-gradient(90deg, var(--accent), #ec4899);
+  z-index: 1000; transition: width .08s linear;
+}
+
+/* ---- Header ------------------------------------------------------------- */
+.doc-header {
+  position: sticky; top: 0; z-index: 900;
+  height: var(--header-h);
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0 1.25rem;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.doc-header .brand { display: flex; flex-direction: column; min-width: 0; }
+.doc-header .brand .kicker {
+  font-size: .68rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); font-weight: 700;
+}
+.doc-header .brand .title {
+  font-size: 1.05rem; font-weight: 700; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; max-width: 46vw;
+}
+.doc-header .spacer { flex: 1 1 auto; }
+
+.doc-search {
+  position: relative; display: flex; align-items: center;
+}
+.doc-search input {
+  width: 230px; max-width: 36vw;
+  padding: .5rem .75rem .5rem 2rem;
+  border: 1px solid var(--border-strong); border-radius: 999px;
+  background: var(--panel); color: var(--text); font-size: .9rem;
+  outline: none; transition: border-color .15s, box-shadow .15s, width .2s;
+}
+.doc-search input:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); width: 280px;
+}
+.doc-search::before {
+  content: ""; position: absolute; left: .65rem; width: 14px; height: 14px; opacity: .55;
+  background: currentColor;
+  -webkit-mask: var(--icon-search) center/contain no-repeat;
+          mask: var(--icon-search) center/contain no-repeat;
+  color: var(--muted);
+}
+.search-count {
+  position: absolute; right: .6rem; font-size: .72rem; color: var(--muted);
+  pointer-events: none;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .42rem .7rem; font-size: .82rem; font-weight: 600;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--panel); color: var(--text-soft); cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s; white-space: nowrap;
+}
+.btn:hover { background: var(--panel-alt); border-color: var(--accent); color: var(--accent-text); }
+.btn .ico { width: 15px; height: 15px; background: currentColor;
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center; }
+.btn-group { display: flex; gap: .4rem; }
+@media (max-width: 760px) { .btn .label { display: none; } .doc-header .title { max-width: 32vw; } }
+
+/* ---- Layout ------------------------------------------------------------- */
+.doc-layout {
+  display: grid; grid-template-columns: 290px minmax(0, 1fr);
+  align-items: start; gap: 0;
+  max-width: 1400px; margin: 0 auto;
+}
+.doc-toc {
+  position: sticky; top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto; padding: 1.25rem .75rem 3rem 1.25rem;
+  border-right: 1px solid var(--border);
+}
+.doc-toc .toc-title {
+  font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); font-weight: 700; margin: 0 0 .5rem .5rem;
+}
+.doc-toc ul { list-style: none; margin: 0; padding: 0; }
+.doc-toc li { margin: 0; }
+.doc-toc a {
+  display: block; padding: .32rem .5rem; border-radius: 6px;
+  color: var(--text-soft); font-size: .86rem; line-height: 1.4;
+  border-left: 2px solid transparent;
+}
+.doc-toc a:hover { background: var(--panel-alt); text-decoration: none; }
+.doc-toc a.sub { padding-left: 1.4rem; font-size: .8rem; color: var(--muted); }
+.doc-toc a.active {
+  color: var(--accent-text); background: var(--accent-soft);
+  border-left-color: var(--accent); font-weight: 600;
+}
+.doc-toc .toc-num {
+  display: inline-block; min-width: 1.4em; color: var(--muted);
+  font-variant-numeric: tabular-nums; font-weight: 600;
+}
+.doc-toc a.active .toc-num { color: var(--accent); }
+
+.doc-content { padding: 2rem 2.5rem 6rem; min-width: 0; }
+.doc-content-inner { max-width: var(--maxw); margin: 0 auto; }
+@media (max-width: 980px) {
+  .doc-layout { grid-template-columns: 1fr; }
+  .doc-toc { display: none; }
+  .doc-content { padding: 1.25rem 1rem 4rem; }
+}
+
+/* ---- Hero (page intro) -------------------------------------------------- */
+.doc-hero { margin-bottom: 1.75rem; }
+.doc-hero h1 { font-size: 2.1rem; margin: 0 0 .4rem; letter-spacing: -.02em; }
+.doc-hero .lede { font-size: 1.12rem; color: var(--text-soft); margin: 0 0 1rem; }
+.badge-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .25rem .6rem; border-radius: 999px; font-size: .76rem; font-weight: 600;
+  background: var(--panel-alt); color: var(--text-soft); border: 1px solid var(--border);
+}
+.badge.accent { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent-border); }
+.badge.green  { background: var(--tip-bg); color: var(--tip-text); border-color: var(--tip-border); }
+.badge.amber  { background: var(--warn-bg); color: var(--warn-text); border-color: var(--warn-border); }
+.badge.purple { background: var(--key-bg); color: var(--key-text); border-color: var(--key-border); }
+
+.meta-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: .75rem; margin: 1rem 0 0;
+}
+.meta-grid .meta-item {
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: .7rem .85rem;
+}
+.meta-grid .meta-k {
+  font-size: .68rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); font-weight: 700; margin-bottom: .15rem;
+}
+.meta-grid .meta-v { font-size: .92rem; font-weight: 600; color: var(--text); }
+
+/* ---- Sections (collapsible top level) ----------------------------------- */
+.doc-section { scroll-margin-top: calc(var(--header-h) + 12px); margin-bottom: 1.1rem; }
+.doc-section > details {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+}
+.doc-section > details[open] { box-shadow: var(--shadow-lg); }
+.doc-section > details > summary {
+  list-style: none; cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: .75rem;
+  padding: 1rem 1.25rem; font-weight: 700;
+}
+.doc-section > details > summary::-webkit-details-marker { display: none; }
+.doc-section > details > summary:hover { background: var(--panel-alt); }
+.doc-section > details > summary h2 {
+  font-size: 1.2rem; margin: 0; font-weight: 700; flex: 1 1 auto;
+}
+.doc-section .sec-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 1.9rem; height: 1.9rem; border-radius: 8px;
+  background: var(--accent-soft); color: var(--accent-text);
+  font-size: .85rem; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.doc-section .chevron {
+  width: 18px; height: 18px; color: var(--muted); transition: transform .2s; flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask: var(--icon-chevron) center/contain no-repeat;
+          mask: var(--icon-chevron) center/contain no-repeat;
+}
+.doc-section > details[open] > summary .chevron { transform: rotate(90deg); }
+.sec-body { padding: .25rem 1.5rem 1.5rem; border-top: 1px solid var(--border); }
+.sec-body > :first-child { margin-top: 1rem; }
+
+/* sub-collapsibles inside a section (per-component drilldowns) */
+details.sub {
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-alt); margin: .85rem 0; overflow: hidden;
+}
+details.sub > summary {
+  list-style: none; cursor: pointer; padding: .7rem 1rem; font-weight: 600;
+  display: flex; align-items: center; gap: .55rem; font-size: .96rem;
+}
+details.sub > summary::-webkit-details-marker { display: none; }
+details.sub > summary:hover { background: var(--panel-alt); }
+details.sub > summary::before {
+  content: ""; width: 14px; height: 14px; color: var(--muted); transition: transform .2s; flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask: var(--icon-chevron) center/contain no-repeat;
+          mask: var(--icon-chevron) center/contain no-repeat;
+}
+details.sub[open] > summary::before { transform: rotate(90deg); }
+details.sub > summary .sub-tag {
+  margin-left: auto; font-family: var(--mono); font-size: .72rem; font-weight: 600;
+  color: var(--muted); background: var(--panel-alt); border: 1px solid var(--border);
+  padding: .1rem .45rem; border-radius: 6px;
+}
+.sub-body { padding: .25rem 1rem 1rem; }
+.sub-body > :first-child { margin-top: .65rem; }
+
+/* ---- File references ---------------------------------------------------- */
+code.fileref {
+  font-family: var(--mono); font-size: .82em; font-weight: 600;
+  background: var(--fileref-bg); color: var(--fileref-text);
+  border: 1px solid var(--fileref-border); border-radius: 6px;
+  padding: .08em .45em .08em 1.5em; cursor: pointer; position: relative;
+  white-space: nowrap; transition: filter .12s;
+}
+code.fileref::before {
+  content: ""; position: absolute; left: .4em; top: 50%; transform: translateY(-50%);
+  width: .85em; height: .85em; background: currentColor; opacity: .8;
+  -webkit-mask: var(--icon-file) center/contain no-repeat;
+          mask: var(--icon-file) center/contain no-repeat;
+}
+code.fileref:hover { filter: brightness(.96); text-decoration: none; }
+:root[data-theme="dark"] code.fileref:hover { filter: brightness(1.15); }
+code.fileref.copied { background: var(--tip-bg); color: var(--tip-text); border-color: var(--tip-border); }
+code.fileref.dir::before { -webkit-mask: var(--icon-folder) center/contain no-repeat; mask: var(--icon-folder) center/contain no-repeat; }
+
+.filecard {
+  display: flex; align-items: baseline; gap: .65rem; flex-wrap: wrap;
+  padding: .55rem .7rem; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-alt); margin: .4rem 0;
+}
+.filecard .filecard-desc { color: var(--text-soft); font-size: .92rem; }
+.filelist { display: flex; flex-direction: column; gap: .35rem; margin: .75rem 0; }
+
+/* ---- Inline code & code blocks ------------------------------------------ */
+:not(pre) > code {
+  font-family: var(--mono); font-size: .86em;
+  background: var(--panel-alt); border: 1px solid var(--border);
+  border-radius: 5px; padding: .08em .4em; color: var(--code-text);
+}
+figure.code {
+  margin: 1rem 0; border: 1px solid var(--code-border); border-radius: var(--radius-sm);
+  overflow: hidden; background: var(--code-bg);
+}
+figure.code figcaption {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .5rem .85rem; font-family: var(--mono); font-size: .76rem; font-weight: 600;
+  color: var(--muted); background: var(--panel-alt); border-bottom: 1px solid var(--code-border);
+}
+figure.code figcaption .lang {
+  margin-left: auto; text-transform: uppercase; letter-spacing: .06em; font-size: .68rem;
+}
+figure.code pre { margin: 0; padding: .9rem 1rem; overflow-x: auto; }
+figure.code code { font-family: var(--mono); font-size: .82rem; line-height: 1.6; color: var(--code-text); background: none; border: none; padding: 0; }
+.code-copy {
+  position: absolute; top: .4rem; right: .4rem; opacity: 0; transition: opacity .15s;
+}
+figure.code { position: relative; }
+figure.code:hover .code-copy { opacity: 1; }
+
+/* ---- Callouts ----------------------------------------------------------- */
+.callout {
+  display: grid; grid-template-columns: auto 1fr; gap: .25rem .75rem;
+  padding: .85rem 1rem; border-radius: var(--radius-sm); margin: 1rem 0;
+  border: 1px solid; border-left-width: 4px;
+}
+.callout .callout-title { font-weight: 700; font-size: .9rem; grid-column: 2; }
+.callout .callout-body { grid-column: 2; }
+.callout .callout-body > :last-child { margin-bottom: 0; }
+.callout::before {
+  content: ""; grid-row: 1 / span 2; width: 18px; height: 18px; margin-top: .15rem;
+  background: currentColor;
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+.callout.note  { background: var(--note-bg); border-color: var(--note-border); color: var(--note-text); }
+.callout.tip   { background: var(--tip-bg);  border-color: var(--tip-border);  color: var(--tip-text); }
+.callout.warn  { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+.callout.key   { background: var(--key-bg);  border-color: var(--key-border);  color: var(--key-text); }
+.callout.danger{ background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+.callout.note::before  { -webkit-mask: var(--icon-info) center/contain no-repeat; mask: var(--icon-info) center/contain no-repeat; }
+.callout.tip::before   { -webkit-mask: var(--icon-bulb) center/contain no-repeat; mask: var(--icon-bulb) center/contain no-repeat; }
+.callout.warn::before  { -webkit-mask: var(--icon-warn) center/contain no-repeat; mask: var(--icon-warn) center/contain no-repeat; }
+.callout.key::before   { -webkit-mask: var(--icon-key) center/contain no-repeat; mask: var(--icon-key) center/contain no-repeat; }
+.callout.danger::before{ -webkit-mask: var(--icon-warn) center/contain no-repeat; mask: var(--icon-warn) center/contain no-repeat; }
+.callout .callout-body code { background: color-mix(in srgb, currentColor 12%, transparent); border-color: transparent; color: inherit; }
+
+/* ---- Tables ------------------------------------------------------------- */
+.table-wrap { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+table.doc-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.doc-table th, table.doc-table td { padding: .6rem .8rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.doc-table thead th { background: var(--panel-alt); font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); position: sticky; top: 0; }
+table.doc-table tbody tr:last-child td { border-bottom: none; }
+table.doc-table tbody tr:hover { background: var(--bg-alt); }
+table.doc-table code { white-space: nowrap; }
+
+/* ---- Definition lists --------------------------------------------------- */
+dl.doc-dl { margin: 1rem 0; display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: .1rem 1rem; }
+dl.doc-dl dt { font-weight: 700; color: var(--text); padding: .4rem 0; border-top: 1px solid var(--border); }
+dl.doc-dl dd { margin: 0; padding: .4rem 0; color: var(--text-soft); border-top: 1px solid var(--border); }
+dl.doc-dl dt:first-of-type, dl.doc-dl dd:first-of-type { border-top: none; }
+@media (max-width: 620px) { dl.doc-dl { grid-template-columns: 1fr; } dl.doc-dl dd { padding-top: 0; border-top: none; } }
+
+/* ---- Tech-stack cards --------------------------------------------------- */
+.stack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .85rem; margin: 1rem 0; }
+.stack-card {
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-alt);
+  padding: .85rem .95rem; display: flex; flex-direction: column; gap: .35rem;
+}
+.stack-card .stack-head { display: flex; align-items: baseline; gap: .5rem; }
+.stack-card .stack-name { font-weight: 700; font-size: 1rem; }
+.stack-card .stack-ver { font-family: var(--mono); font-size: .76rem; color: var(--accent-text); background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 5px; padding: .05rem .4rem; }
+.stack-card .stack-why { font-size: .87rem; color: var(--text-soft); }
+.stack-card .stack-foot { margin-top: auto; }
+
+/* ---- Step list ---------------------------------------------------------- */
+ol.steps { counter-reset: step; list-style: none; padding: 0; margin: 1rem 0; }
+ol.steps > li {
+  position: relative; padding: .15rem 0 .9rem 2.4rem; margin: 0;
+  border-left: 2px solid var(--border); margin-left: .9rem;
+}
+ol.steps > li:last-child { border-left-color: transparent; }
+ol.steps > li::before {
+  counter-increment: step; content: counter(step);
+  position: absolute; left: -.95rem; top: 0;
+  width: 1.8rem; height: 1.8rem; border-radius: 50%;
+  background: var(--accent); color: #fff; font-weight: 700; font-size: .85rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ---- Pipeline / flow chips ---------------------------------------------- */
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin: 1rem 0; }
+.flow .node { padding: .35rem .7rem; border: 1px solid var(--accent-border); background: var(--accent-soft); color: var(--accent-text); border-radius: var(--radius-sm); font-weight: 600; font-size: .85rem; }
+.flow .arrow { color: var(--muted); font-weight: 700; }
+
+/* ---- Diagram (mermaid) -------------------------------------------------- */
+figure.diagram { margin: 1.25rem 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--panel); padding: 1rem; overflow-x: auto; text-align: center; }
+figure.diagram figcaption { margin-top: .6rem; font-size: .82rem; color: var(--muted); text-align: center; }
+figure.diagram .mermaid { display: flex; justify-content: center; }
+.mermaid-fallback { display: none; }
+figure.diagram.failed .mermaid { display: none; }
+figure.diagram.failed .mermaid-fallback { display: block; text-align: left; }
+
+/* ---- Misc --------------------------------------------------------------- */
+.tag-list { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+.tag { font-size: .76rem; padding: .15rem .5rem; border-radius: 999px; background: var(--panel-alt); border: 1px solid var(--border); color: var(--text-soft); font-family: var(--mono); }
+
+.lead-in { font-size: 1rem; color: var(--text-soft); border-left: 3px solid var(--accent); padding-left: .9rem; margin: 0 0 1.25rem; }
+
+ul.clean { list-style: none; padding-left: 0; }
+ul.clean > li { position: relative; padding-left: 1.4rem; margin: .35rem 0; }
+ul.clean > li::before { content: ""; position: absolute; left: .2rem; top: .55em; width: .4rem; height: .4rem; border-radius: 50%; background: var(--accent); }
+
+.content-section h3 { margin-top: 1.5rem; font-size: 1.05rem; }
+.sec-body h3 { margin-top: 1.6rem; font-size: 1.08rem; padding-bottom: .3rem; border-bottom: 1px solid var(--border); }
+.sec-body h4 { margin-top: 1.2rem; font-size: .96rem; }
+
+mark.hl { background: #fde68a; color: #78350f; border-radius: 3px; padding: 0 .1em; }
+:root[data-theme="dark"] mark.hl { background: #92400e; color: #fde68a; }
+
+.filtered-out { display: none !important; }
+
+/* ---- Back to top -------------------------------------------------------- */
+#backTop {
+  position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 800;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-strong);
+  background: var(--panel); color: var(--text-soft); cursor: pointer; box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .2s, transform .2s;
+}
+#backTop.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+#backTop:hover { color: var(--accent-text); border-color: var(--accent); }
+#backTop .ico { width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--icon-up) center/contain no-repeat; mask: var(--icon-up) center/contain no-repeat; }
+
+/* ---- Footer ------------------------------------------------------------- */
+.doc-footer {
+  border-top: 1px solid var(--border); margin-top: 2rem; padding: 1.5rem 2.5rem;
+  color: var(--muted); font-size: .84rem; max-width: 1400px; margin-left: auto; margin-right: auto;
+}
+.doc-footer code { font-size: .8em; }
+
+/* ---- Icons (data-URI masks; monochrome, themeable via currentColor) ----- */
+:root {
+  --icon-search: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>');
+  --icon-chevron: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>');
+  --icon-file: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>');
+  --icon-folder: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>');
+  --icon-info: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>');
+  --icon-bulb: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M15.09 14c.18-.79.62-1.42 1.27-2A4.5 4.5 0 1 0 7.64 12c.65.58 1.09 1.21 1.27 2"/></svg>');
+  --icon-warn: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>');
+  --icon-key: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/></svg>');
+  --icon-up: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>');
+  --icon-expand: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg>');
+  --icon-collapse: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 20 5-5 5 5M7 4l5 5 5-5"/></svg>');
+  --icon-sun: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>');
+  --icon-moon: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>');
+  --icon-print: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>');
+  --icon-copy: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>');
+}
+
+/* ---- Print -------------------------------------------------------------- */
+@media print {
+  .doc-header, .doc-toc, #backTop, #scrollProgress, .code-copy { display: none !important; }
+  .doc-layout { grid-template-columns: 1fr; }
+  .doc-content { padding: 0; }
+  .doc-section > details { box-shadow: none; border-color: #ccc; break-inside: avoid; }
+  body { background: #fff; }
+  a { color: inherit; }
+}
+
+/* ---- Index hub (DOCUMENTATION_INDEX.html) ------------------------------- */
+.index-wrap { max-width: 1180px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
+.index-hero { margin-bottom: 2rem; }
+.index-hero h1 { font-size: 2.3rem; margin: 0 0 .5rem; letter-spacing: -.02em; }
+.index-hero .lede { font-size: 1.15rem; color: var(--text-soft); margin: 0; max-width: 70ch; }
+.index-stats { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1.25rem; }
+.index-stats .stat { display: flex; flex-direction: column; }
+.index-stats .stat .num { font-size: 1.7rem; font-weight: 800; color: var(--accent-text); line-height: 1; }
+.index-stats .stat .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; margin-top: .3rem; }
+.index-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 1rem; margin: 1.75rem 0 0; }
+a.index-card { text-decoration: none; color: inherit; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); padding: 1.15rem 1.25rem; display: flex; flex-direction: column; gap: .55rem; box-shadow: var(--shadow); transition: transform .12s, box-shadow .12s, border-color .12s; }
+a.index-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--accent); text-decoration: none; }
+a.index-card .ic-title { font-size: 1.12rem; font-weight: 700; color: var(--text); font-family: var(--mono); }
+a.index-card .ic-desc { font-size: .9rem; color: var(--text-soft); line-height: 1.5; flex: 1 1 auto; }
+a.index-card .ic-badges { display: flex; flex-wrap: wrap; gap: .35rem; }
+a.index-card .ic-open { margin-top: .35rem; font-size: .8rem; font-weight: 700; color: var(--accent-text); display: inline-flex; align-items: center; gap: .3rem; }
+a.index-card .ic-open::after { content: "→"; transition: transform .12s; }
+a.index-card:hover .ic-open::after { transform: translateX(3px); }
+@media (max-width: 560px) { .index-wrap { padding: 1.5rem 1rem 3rem; } .index-grid { grid-template-columns: 1fr; } }
+
+  </style>
+</head>
+<body>
+  <div id="scrollProgress"></div>
+
+  <header class="doc-header">
+    <div class="brand">
+      <span class="kicker">Project Guide</span>
+      <span class="title">engineering-effectiveness</span>
+    </div>
+    <div class="spacer"></div>
+    <div class="doc-search">
+      <input id="docSearch" type="search" placeholder="Search this guide…" aria-label="Search documentation">
+      <span class="search-count"></span>
+    </div>
+    <div class="btn-group">
+      <button class="btn" id="expandAll" title="Expand all sections"><span class="ico" style="-webkit-mask:var(--icon-expand) center/contain no-repeat;mask:var(--icon-expand) center/contain no-repeat"></span><span class="label">Expand</span></button>
+      <button class="btn" id="collapseAll" title="Collapse all sections"><span class="ico" style="-webkit-mask:var(--icon-collapse) center/contain no-repeat;mask:var(--icon-collapse) center/contain no-repeat"></span><span class="label">Collapse</span></button>
+      <button class="btn" id="themeToggle" title="Toggle light / dark"><span class="ico"></span></button>
+      <button class="btn" id="printBtn" title="Print / Save as PDF"><span class="ico" style="-webkit-mask:var(--icon-print) center/contain no-repeat;mask:var(--icon-print) center/contain no-repeat"></span></button>
+    </div>
+  </header>
+
+  <div class="doc-layout">
+    <nav class="doc-toc" id="docToc"><div class="toc-title">Contents</div></nav>
+
+    <main class="doc-content">
+      <div class="doc-content-inner">
+
+        <section class="doc-hero">
+          <h1>engineering-effectiveness</h1>
+          <p class="lede">The Effectiveness Radar — a measurement framework that compresses raw project delivery history into five mathematically-defensible composite scores: Speed, Accuracy, Defense, Strength, and Endurance.</p>
+          <div class="badge-row">
+            <span class="badge accent">Frontend MVP</span>
+            <span class="badge green">Phase 1 · active</span>
+            <span class="badge purple">React 18 + TS strict</span>
+            <span class="badge">v0.2.0</span>
+          </div>
+          <div class="meta-grid">
+            <div class="meta-item"><div class="meta-k">Stack</div><div class="meta-v">React 18 · TypeScript · Vite · Chart.js</div></div>
+            <div class="meta-item"><div class="meta-k">Persistence</div><div class="meta-v">localStorage (Phase 1)</div></div>
+            <div class="meta-item"><div class="meta-k">Entry point</div><div class="meta-v">run_engineering_effectiveness.sh</div></div>
+            <div class="meta-item"><div class="meta-k">Port</div><div class="meta-v">5230 (Docker / dev)</div></div>
+            <div class="meta-item"><div class="meta-k">Status</div><div class="meta-v">Scoring engine done · UI in progress</div></div>
+            <div class="meta-item"><div class="meta-k">CI</div><div class="meta-v">GitHub Actions</div></div>
+          </div>
+        </section>
+
+        <!-- ============================ 1. OVERVIEW ============================ -->
+        <section class="doc-section" id="overview">
+          <details open>
+            <summary><span class="sec-num">1</span><h2>Overview — what this is &amp; why</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">A single-purpose tool that turns ten raw facts about each delivered project into a five-axis radar of team capability — every number traceable to an input field, a formula, and a tunable constant.</p>
+
+              <p>The <strong>Effectiveness Radar</strong> answers one question: <em>how capable is this engineering team at delivering?</em> It refuses to answer it with surveys, manager gut-feel, or performance reviews. Instead, each completed project contributes exactly <strong>10 input fields</strong> (dates, revenue figures, security counts, phase counts, dependency counts), and a deterministic scoring engine transforms them into five composite axes, each scored <code>0–100</code> and classified into a <strong>HIGH / MID / LOW</strong> tier.</p>
+
+              <p>The core philosophy, stated in <code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> section 0: <em>"This is a measurement framework, not an opinion tool. If a score cannot be explained by pointing to an input field, a formula, and a constant, it does not belong."</em> Every formula is documented in the master plan, every constant lives in one named-constant file, and the math is implemented as pure functions so it can be re-implemented identically in Python in a later phase.</p>
+
+              <p>This is a <strong>phased, multi-session project</strong>. The repo currently targets <strong>Phase 1 — Frontend MVP</strong>: a React 18 + TypeScript-strict app with a Chart.js radar, manual data entry, client-side scoring, and <code class="fileref" data-path="frontend/src/stores/projectStore.ts">localStorage</code> persistence. Phases 2–5 add a FastAPI + PostgreSQL backend, Jira/security/finance connectors, historical trends, and full automation. The data contracts defined now are designed to become the Phase 2 API and database schema verbatim.</p>
+
+              <div class="callout key">
+                <div class="callout-title">Key concept</div>
+                <div class="callout-body">The radar is <strong>a function of what actually happened</strong>, not what people felt happened. Scores are <strong>team-level</strong>, never individual. The tool deliberately does <em>not</em> track tasks, run sprints, or do performance reviews — it has exactly one job: produce the radar.</div>
+              </div>
+
+              <div class="callout warn">
+                <div class="callout-title">What is built vs. what is planned</div>
+                <div class="callout-body">As of <strong>v0.2.0</strong>, the <strong>scoring engine, type contracts, Zustand store, and unit tests are complete and passing</strong>. The <strong>UI is not yet built</strong> — <code class="fileref" data-path="frontend/src/App.tsx">frontend/src/App.tsx</code> is still a placeholder shell ("Phase 1 — Frontend MVP" heading). The radar chart, data-entry form, project table, and derivation panel described in the plan are <em>next on the roadmap</em>, not yet implemented in the TypeScript app. The original <code class="fileref" data-path="effectiveness.jsx">effectiveness.jsx</code> prototype contains a working (SVG-based) version of all of these as a reference. This document marks planned-vs-built explicitly throughout.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 2. STATUS ============================ -->
+        <section class="doc-section" id="status">
+          <details>
+            <summary><span class="sec-num">2</span><h2>Status &amp; at-a-glance</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">Current version is <strong>v0.2.0</strong>; the project is mid-Phase-1 with the math layer done and the visual layer pending.</p>
+
+              <div class="table-wrap"><table class="doc-table">
+                <thead><tr><th>Aspect</th><th>State</th><th>Source</th></tr></thead>
+                <tbody>
+                  <tr><td>Phase</td><td>Phase 1 — Frontend MVP (of 5 phases)</td><td><code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code></td></tr>
+                  <tr><td>Version (source of truth)</td><td><code>0.2.0</code> in <code>frontend/package.json</code></td><td><code class="fileref" data-path="frontend/package.json">frontend/package.json</code></td></tr>
+                  <tr><td>Scoring engine</td><td><strong>Done</strong> — 5 axes + overall + tier + aggregate, all pure functions</td><td><code class="fileref dir" data-path="frontend/src/utils/scoring/">frontend/src/utils/scoring/</code></td></tr>
+                  <tr><td>Type contracts</td><td><strong>Done</strong> — ProjectData, RadarScores, Tier, ProjectScores, AggregateScores</td><td><code class="fileref dir" data-path="frontend/src/types/">frontend/src/types/</code></td></tr>
+                  <tr><td>State / persistence</td><td><strong>Done</strong> — Zustand store with localStorage middleware</td><td><code class="fileref" data-path="frontend/src/stores/projectStore.ts">frontend/src/stores/projectStore.ts</code></td></tr>
+                  <tr><td>Unit tests</td><td><strong>Done</strong> — 7 test files, scoring + tier coverage</td><td><code class="fileref dir" data-path="frontend/tests/unit/scoring/">frontend/tests/unit/scoring/</code></td></tr>
+                  <tr><td>UI (radar, form, table, panel)</td><td><strong>Pending</strong> — App.tsx is a placeholder shell</td><td><code class="fileref" data-path="frontend/src/App.tsx">frontend/src/App.tsx</code></td></tr>
+                  <tr><td>Docker / launcher</td><td><strong>Done</strong> — multi-stage node→nginx, [k/q/v/r] launcher</td><td><code class="fileref" data-path="Dockerfile">Dockerfile</code></td></tr>
+                  <tr><td>CI</td><td><strong>Done</strong> — GitHub Actions (lint→test→build→docker-build)</td><td><code class="fileref" data-path=".github/workflows/ci.yml">.github/workflows/ci.yml</code></td></tr>
+                </tbody>
+              </table></div>
+
+              <p>The authoritative live-state document is <code class="fileref" data-path="docs/status.md">docs/status.md</code>; the changelog is <code class="fileref" data-path="docs/versions.md">docs/versions.md</code>. The "What's Next" list in status.md is the concrete to-do for finishing Phase 1: port the radar to Chart.js, build the entry form and project table, build the derivation panel and tier display, and wire the engine to the UI.</p>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 3. TECH STACK ============================ -->
+        <section class="doc-section" id="tech-stack">
+          <details>
+            <summary><span class="sec-num">3</span><h2>Tech stack</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">A deliberately small, opinionated frontend stack. Every dependency is pinned in <code class="fileref" data-path="frontend/package.json">frontend/package.json</code>; the rationale lives in <code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> §3.</p>
+
+              <div class="stack-grid">
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">React</span><span class="stack-ver">18.3</span></div>
+                  <div class="stack-why">UI runtime. Rendered in StrictMode from <code>main.tsx</code> into <code>#root</code>.</div>
+                  <div class="stack-foot"><code class="fileref" data-path="frontend/src/main.tsx">frontend/src/main.tsx</code></div>
+                </div>
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">TypeScript</span><span class="stack-ver">~5.6</span></div>
+                  <div class="stack-why">Strict mode (<code>"strict": true</code>, no <code>any</code>). Project references split app / node / test configs.</div>
+                  <div class="stack-foot"><code class="fileref" data-path="frontend/tsconfig.app.json">frontend/tsconfig.app.json</code></div>
+                </div>
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">Vite</span><span class="stack-ver">5.4</span></div>
+                  <div class="stack-why">Dev server + prod bundler. Dev port read from <code>VITE_PORT</code> (default 5230).</div>
+                  <div class="stack-foot"><code class="fileref" data-path="frontend/vite.config.ts">frontend/vite.config.ts</code></div>
+                </div>
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">Chart.js</span><span class="stack-ver">4.5</span></div>
+                  <div class="stack-why">Radar chart engine via <code>react-chartjs-2</code> 5.3. Chosen over custom SVG for theming + maintenance. <em>Not yet wired into a component.</em></div>
+                  <div class="stack-foot"><code class="fileref" data-path="frontend/package.json">frontend/package.json</code></div>
+                </div>
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">react-bootstrap</span><span class="stack-ver">2.10</span></div>
+                  <div class="stack-why">UI components + Bootstrap 5 CSS. Only <code>Container</code> is used so far in the shell.</div>
+                  <div class="stack-foot"><code class="fileref" data-path="frontend/src/App.tsx">frontend/src/App.tsx</code></div>
+                </div>
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">Zustand</span><span class="stack-ver">5.0</span></div>
+                  <div class="stack-why">App state (projects + selection). <code>persist</code> middleware serializes to localStorage key <code>ee-project-store</code>.</div>
+                  <div class="stack-foot"><code class="fileref" data-path="frontend/src/stores/projectStore.ts">frontend/src/stores/projectStore.ts</code></div>
+                </div>
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">Vitest + RTL</span><span class="stack-ver">2.1 / 16.3</span></div>
+                  <div class="stack-why">jsdom test environment, v8 coverage, RTL cleanup in setup. 100% target on scoring math.</div>
+                  <div class="stack-foot"><code class="fileref" data-path="frontend/vitest.config.ts">frontend/vitest.config.ts</code></div>
+                </div>
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">ESLint</span><span class="stack-ver">9.13</span></div>
+                  <div class="stack-why">Flat config; JS + typescript-eslint recommended, react-hooks, react-refresh.</div>
+                  <div class="stack-foot"><code class="fileref" data-path="frontend/eslint.config.js">frontend/eslint.config.js</code></div>
+                </div>
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">pnpm</span><span class="stack-ver">9.15</span></div>
+                  <div class="stack-why">Package manager (pinned via <code>packageManager</code> + corepack). Frozen-lockfile installs in CI &amp; Docker.</div>
+                  <div class="stack-foot"><code class="fileref" data-path="frontend/pnpm-lock.yaml">frontend/pnpm-lock.yaml</code></div>
+                </div>
+                <div class="stack-card">
+                  <div class="stack-head"><span class="stack-name">Docker + nginx</span><span class="stack-ver">node:20 / nginx:alpine</span></div>
+                  <div class="stack-why">Multi-stage build → static nginx serve. Single service, port 5230→80.</div>
+                  <div class="stack-foot"><code class="fileref" data-path="Dockerfile">Dockerfile</code></div>
+                </div>
+              </div>
+
+              <div class="callout note">
+                <div class="callout-title">Phase 2 stack (not present yet)</div>
+                <div class="callout-body">The master plan reserves <strong>FastAPI + SQLAlchemy 2.0 async + Pydantic v2 + PostgreSQL 16</strong> for Phase 2. There is no <code>backend/</code> directory today. The TypeScript scoring functions are written as pure functions specifically so they can be ported to Python with identical results (see <code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> §15).</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 4. ARCHITECTURE ============================ -->
+        <section class="doc-section" id="architecture">
+          <details>
+            <summary><span class="sec-num">4</span><h2>Architecture</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">Phase 1 is a fully client-side pipeline: raw project data → Zustand store → pure scoring functions → (planned) radar + panels. No network, no backend.</p>
+
+              <h3 class="anchor">Current (Phase 1) topology</h3>
+              <figure class="diagram">
+                <div class="mermaid">
+graph TD
+    USER[User] -->|enters 10 fields| FORM[Entry Form planned]
+    FORM --> STORE[Zustand projectStore]
+    STORE -->|persist middleware| LS[(localStorage ee-project-store)]
+    STORE --> CPS[computeProjectScores]
+    CPS --> CAS[computeAggregateScores]
+    CPS --> RADAR[Radar Chart planned]
+    CAS --> RADAR
+    CPS --> PANEL[Derivation Panel planned]
+    CAS --> TABLE[Project Table planned]
+    subgraph Scoring Engine pure TS
+      CPS
+      CAS
+    end
+                </div>
+                <div class="mermaid-fallback"><figure class="code"><figcaption>diagram source · mermaid</figcaption><pre><code>graph TD
+    USER[User] --&gt;|enters 10 fields| FORM[Entry Form planned]
+    FORM --&gt; STORE[Zustand projectStore]
+    STORE --&gt;|persist middleware| LS[(localStorage ee-project-store)]
+    STORE --&gt; CPS[computeProjectScores]
+    CPS --&gt; CAS[computeAggregateScores]
+    CPS --&gt; RADAR[Radar Chart planned]
+    CAS --&gt; RADAR
+    CPS --&gt; PANEL[Derivation Panel planned]
+    CAS --&gt; TABLE[Project Table planned]
+    subgraph Scoring Engine pure TS
+      CPS
+      CAS
+    end</code></pre></figure></div>
+                <figcaption>Phase 1 data path. Solid boxes marked "planned" are scaffolded in the plan but not yet implemented in the TS app.</figcaption>
+              </figure>
+
+              <p>The architecture has three clean layers, all inside <code class="fileref dir" data-path="frontend/src/">frontend/src/</code>:</p>
+              <dl class="doc-dl">
+                <dt>Data layer</dt><dd>The Zustand store <code class="fileref" data-path="frontend/src/stores/projectStore.ts">projectStore.ts</code> holds an array of <code>ProjectData</code> plus a <code>selectedProjectId</code>. Persistence is automatic via Zustand's <code>persist</code> middleware (localStorage). This is the only stateful, side-effectful module.</dd>
+                <dt>Compute layer</dt><dd>The scoring engine under <code class="fileref dir" data-path="frontend/src/utils/scoring/">utils/scoring/</code> is a set of <em>pure, side-effect-free functions</em>. Given inputs it returns numbers. It does not read the store, the DOM, or the network. This is what makes it testable against analytical values and portable to Python.</dd>
+                <dt>Presentation layer</dt><dd>React components (currently only the placeholder <code class="fileref" data-path="frontend/src/App.tsx">App.tsx</code>) render the store + scores. Chart logic is meant to be isolated behind a single radar component so a chart-library swap touches nothing else.</dd>
+              </dl>
+
+              <h3 class="anchor">Full target architecture (Phases 2–5)</h3>
+              <p>The master plan paints the eventual system: web/mobile/embeddable clients → API gateway + auth → ingestion / scoring / comparison / trend / alert services → Postgres + Redis + queue, fed by Jira / ADO / SonarQube / Snyk / Looker connectors.</p>
+              <figure class="diagram">
+                <div class="mermaid">
+graph LR
+    subgraph Phase1[Phase 1 current]
+      UI[React + TS] --> CHART[Chart.js Radar]
+      UI --> STORE[Zustand]
+      STORE --> LS[(localStorage)]
+      STORE --> SCORE[Scoring TS]
+    end
+    subgraph Phase2[Phase 2]
+      API[FastAPI] --> DB[(PostgreSQL)]
+      API --> PY[Scoring Python]
+    end
+    subgraph Phase3[Phase 3+]
+      JIRA[Jira / ADO]
+      SEC[Security Scanners]
+      FIN[Finance / BI]
+    end
+    UI -.Phase2.-> API
+    JIRA --> API
+    SEC --> API
+    FIN --> API
+                </div>
+                <div class="mermaid-fallback"><figure class="code"><figcaption>diagram source · mermaid</figcaption><pre><code>graph LR
+    subgraph Phase1[Phase 1 current]
+      UI[React + TS] --&gt; CHART[Chart.js Radar]
+      UI --&gt; STORE[Zustand]
+      STORE --&gt; LS[(localStorage)]
+      STORE --&gt; SCORE[Scoring TS]
+    end
+    subgraph Phase2[Phase 2]
+      API[FastAPI] --&gt; DB[(PostgreSQL)]
+      API --&gt; PY[Scoring Python]
+    end
+    subgraph Phase3[Phase 3+]
+      JIRA[Jira / ADO]
+      SEC[Security Scanners]
+      FIN[Finance / BI]
+    end
+    UI -.Phase2.-&gt; API
+    JIRA --&gt; API
+    SEC --&gt; API
+    FIN --&gt; API</code></pre></figure></div>
+                <figcaption>Phase evolution. Only the "Phase 1 current" block exists in code today.</figcaption>
+              </figure>
+
+              <div class="flow"><span class="node">10 raw fields</span><span class="arrow">→</span><span class="node">store</span><span class="arrow">→</span><span class="node">per-project scores</span><span class="arrow">→</span><span class="node">aggregate</span><span class="arrow">→</span><span class="node">radar + panels</span></div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 5. DIRECTORY STRUCTURE ============================ -->
+        <section class="doc-section" id="structure">
+          <details>
+            <summary><span class="sec-num">5</span><h2>Directory structure</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">The repo root holds project-wide docs, Docker, launchers, and the agent harness; the actual app lives entirely under <code class="fileref dir" data-path="frontend/">frontend/</code>.</p>
+
+              <h3 class="anchor">Root</h3>
+              <div class="filelist">
+                <div class="filecard"><code class="fileref" data-path="ENGINEERING_EFFECTIVENESS_MASTER_PLAN.md">ENGINEERING_EFFECTIVENESS_MASTER_PLAN.md</code><span class="filecard-desc">Authoritative spec: model, scoring formulas, data dictionary, ingestion strategies, phases, calibration. ~32 KB.</span></div>
+                <div class="filecard"><code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code><span class="filecard-desc">AI/dev operating guide: phase constraints, data contracts, scoring formulas, code rules. Read before any change.</span></div>
+                <div class="filecard"><code class="fileref" data-path="AGENTS.md">AGENTS.md</code><span class="filecard-desc">Codex-flavored mirror of CLAUDE.md (same content, agent-neutral framing).</span></div>
+                <div class="filecard"><code class="fileref" data-path="README.md">README.md</code><span class="filecard-desc">Human-facing overview with Mermaid diagrams of the model, architecture, data flow, and phases.</span></div>
+                <div class="filecard"><code class="fileref" data-path="effectiveness.jsx">effectiveness.jsx</code><span class="filecard-desc">Original Phase-1 prototype (SVG radar, table, derivation panel, 8 sample projects). Reference only.</span></div>
+                <div class="filecard"><code class="fileref" data-path="Dockerfile">Dockerfile</code><span class="filecard-desc">Multi-stage build: node:20-alpine builds Vite bundle → nginx:alpine serves it.</span></div>
+                <div class="filecard"><code class="fileref" data-path="docker-compose.yml">docker-compose.yml</code><span class="filecard-desc">Single service mapping <code>${EE_PORT:-5230}</code>→80.</span></div>
+                <div class="filecard"><code class="fileref" data-path="nginx.conf">nginx.conf</code><span class="filecard-desc">SPA fallback, static-asset caching, security headers.</span></div>
+                <div class="filecard"><code class="fileref" data-path="run_engineering_effectiveness.sh">run_engineering_effectiveness.sh</code><span class="filecard-desc">macOS/Linux launcher with [k/q/v/r] menu.</span></div>
+                <div class="filecard"><code class="fileref" data-path="run_engineering_effectiveness.bat">run_engineering_effectiveness.bat</code><span class="filecard-desc">Windows launcher (same menu).</span></div>
+                <div class="filecard"><code class="fileref" data-path="claude-teams.sh">claude-teams.sh</code><span class="filecard-desc">Launches Claude Code with <code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</code>. <code class="fileref" data-path="claude-teams.bat">.bat</code> counterpart exists.</span></div>
+              </div>
+
+              <h3 class="anchor">docs/ and agent harness</h3>
+              <div class="filelist">
+                <div class="filecard"><code class="fileref" data-path="docs/status.md">docs/status.md</code><span class="filecard-desc">Live state: what exists, what's next, recent architectural decisions.</span></div>
+                <div class="filecard"><code class="fileref" data-path="docs/versions.md">docs/versions.md</code><span class="filecard-desc">Semver changelog, newest first (v0.2.0, v0.1.0).</span></div>
+                <div class="filecard"><code class="fileref dir" data-path=".codex/commands/">.codex/commands/</code><span class="filecard-desc">Slash commands: scaffold, review, pre-commit, validate, phase-status.</span></div>
+                <div class="filecard"><code class="fileref" data-path=".codex/hooks.json">.codex/hooks.json</code><span class="filecard-desc">PreToolUse / PostToolUse / Stop hooks wiring into the Node hook scripts.</span></div>
+                <div class="filecard"><code class="fileref dir" data-path=".agents/skills/">.agents/skills/</code><span class="filecard-desc">Proactive protocol skills: phase-awareness, validation-protocol.</span></div>
+                <div class="filecard"><code class="fileref dir" data-path="scripts/hooks/">scripts/hooks/</code><span class="filecard-desc">OS-agnostic Node hook implementations (.cjs): pre/post-tool-use, stop, stop-memory, hookUtils.</span></div>
+              </div>
+
+              <h3 class="anchor">frontend/src/</h3>
+              <div class="filelist">
+                <div class="filecard"><code class="fileref" data-path="frontend/src/main.tsx">main.tsx</code><span class="filecard-desc">Entry: mounts <code>&lt;App/&gt;</code> in StrictMode, imports Bootstrap CSS.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/src/App.tsx">App.tsx</code><span class="filecard-desc">Root component — currently a placeholder shell (heading + subtitle).</span></div>
+                <div class="filecard"><code class="fileref dir" data-path="frontend/src/types/">types/</code><span class="filecard-desc">One interface/type per file: ProjectData, RadarScores, Tier, ProjectScores, AggregateScores.</span></div>
+                <div class="filecard"><code class="fileref dir" data-path="frontend/src/utils/scoring/">utils/scoring/</code><span class="filecard-desc">The scoring engine: constants, clamp, 5 axis calculators, overall, tier, compute helpers.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/src/stores/projectStore.ts">stores/projectStore.ts</code><span class="filecard-desc">Zustand store with localStorage persistence.</span></div>
+                <div class="filecard"><code class="fileref dir" data-path="frontend/tests/">tests/</code><span class="filecard-desc">Vitest setup + one unit test file per scoring function.</span></div>
+              </div>
+
+              <div class="callout warn">
+                <div class="callout-title">Doc drift to be aware of</div>
+                <div class="callout-body"><code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> §10 describes a <code>.claude/</code> directory and several <code>features/</code>, <code>components/</code>, <code>hooks/</code> subdirectories under <code>src/</code>. Those <strong>do not exist yet</strong> — the agent tooling currently lives under <code class="fileref dir" data-path=".codex/">.codex/</code> + <code class="fileref dir" data-path=".agents/">.agents/</code> + <code class="fileref dir" data-path="scripts/hooks/">scripts/hooks/</code>, and the UI subdirectories are part of the not-yet-built UI. Treat CLAUDE.md §10 as the <em>intended</em> layout, not a description of the current tree.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 6. CORE MODULES ============================ -->
+        <section class="doc-section" id="modules">
+          <details>
+            <summary><span class="sec-num">6</span><h2>Core modules — the scoring engine</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">The heart of the project. Every module here is a pure function with one job, living in its own file under <code class="fileref dir" data-path="frontend/src/utils/scoring/">frontend/src/utils/scoring/</code>. All return integers via <code>Math.round</code> and clamp to <code>0–100</code>.</p>
+
+              <details class="sub">
+                <summary>Constants <span class="sub-tag">scoringConstants.ts</span></summary>
+                <div class="sub-body">
+                  <p>The single home for every tunable number — there are no magic numbers anywhere else in the engine. These are the calibration knobs the master plan discusses tuning per-organization.</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/utils/scoring/scoringConstants.ts<span class="lang">typescript</span></figcaption>
+                    <pre><code>export const SPEED_SENSITIVITY_MULTIPLIER = 2.5;
+export const ACCURACY_REVENUE_WEIGHT = 0.5;
+export const ACCURACY_PHASE_WEIGHT = 0.5;
+export const ACCURACY_REVENUE_SENSITIVITY = 200;
+export const ACCURACY_PHASE_SENSITIVITY = 150;
+export const DEFENSE_VULN_PENALTY = 18;
+export const DEFENSE_BREACH_DIVISOR = 500_000;
+export const DEFENSE_BREACH_PENALTY_FACTOR = 10;
+export const ENDURANCE_REUSE_CAP = 8;
+export const ENDURANCE_INTERSECTION_CAP = 5;
+export const ENDURANCE_REUSE_MAX_POINTS = 50;
+export const ENDURANCE_INTERSECTION_MAX_POINTS = 50;
+export const TIER_HIGH_THRESHOLD = 75;
+export const TIER_MID_THRESHOLD = 45;</code></pre>
+                  </figure>
+                  <div class="filelist">
+                    <div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/scoringConstants.ts">frontend/src/utils/scoring/scoringConstants.ts</code><span class="filecard-desc">All 14 tunable constants. Phase 2 Python engine must use identical values.</span></div>
+                  </div>
+                  <div class="callout tip"><div class="callout-title">Tip</div><div class="callout-body">To recalibrate the radar for a stricter or looser culture, this is the <em>only</em> file you touch. See the calibration table in <a href="#roadmap">Roadmap</a> / the master plan for what each constant does.</div></div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>clamp <span class="sub-tag">clamp.ts</span></summary>
+                <div class="sub-body">
+                  <p>The shared bounding helper used by every axis to keep scores inside <code>[min, max]</code>.</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/utils/scoring/clamp.ts<span class="lang">typescript</span></figcaption>
+                    <pre><code>export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}</code></pre>
+                  </figure>
+                  <div class="filelist"><div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/clamp.ts">frontend/src/utils/scoring/clamp.ts</code><span class="filecard-desc">Min/max bounding. Imported by all 5 axis calculators.</span></div></div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Speed <span class="sub-tag">calculateSpeed.ts</span></summary>
+                <div class="sub-body">
+                  <p><strong>Measures:</strong> delivery punctuality. <strong>Inputs:</strong> target + actual delivery dates (ISO strings). It computes slip days, scales by <code>plannedDuration</code> and the sensitivity multiplier, and inverts so on-time/early = 100.</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/utils/scoring/calculateSpeed.ts<span class="lang">typescript</span></figcaption>
+                    <pre><code>const DEFAULT_PLANNED_DURATION_DAYS = 180;
+const MIN_PLANNED_DURATION_DAYS = 30;
+
+export function calculateSpeed(targetDeliveryDate, actualDeliveryDate): number {
+  const plannedDuration = Math.max(
+    DEFAULT_PLANNED_DURATION_DAYS, MIN_PLANNED_DURATION_DAYS); // = 180
+  const slipDays = Math.max(0, daysBetween(targetDeliveryDate, actualDeliveryDate));
+  return Math.round(clamp(
+    100 * (1 - (slipDays / plannedDuration) * SPEED_SENSITIVITY_MULTIPLIER),
+    0, 100));
+}</code></pre>
+                  </figure>
+                  <div class="callout warn">
+                    <div class="callout-title">Implementation diverges from the spec</div>
+                    <div class="callout-body">The master plan / <code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> §5 define <code>plannedDuration = daysBetween(projectStartBaseline, targetDate)</code> (variable per project, e.g. the <code>effectiveness.jsx</code> prototype uses a hardcoded <code>2024-06-01</code> baseline). The current TS implementation instead uses a <strong>fixed 180-day</strong> planned duration for <em>every</em> project — <code>Math.max(180, 30)</code> always evaluates to 180, and <code>targetDeliveryDate</code> is never used to compute duration (only to compute slip). This is a documented Phase-1 simplification (CLAUDE.md §5 note), but it means Speed currently ignores how long each project was actually scheduled for. To make it per-project, reintroduce a baseline/start date into <code>ProjectData</code> and compute <code>daysBetween(baseline, targetDeliveryDate)</code>.</div>
+                  </div>
+                  <div class="filelist"><div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/calculateSpeed.ts">frontend/src/utils/scoring/calculateSpeed.ts</code><span class="filecard-desc">Slip-day scoring with local <code>daysBetween</code> helper (rounds ms→days).</span></div></div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Accuracy <span class="sub-tag">calculateAccuracy.ts</span></summary>
+                <div class="sub-body">
+                  <p><strong>Measures:</strong> how closely the outcome matched the plan, financially and in scope. <strong>Inputs:</strong> expected/actual revenue, expected/actual phases. It is a 50/50 blend of revenue accuracy and phase accuracy, each clamped to <code>0–100</code>.</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/utils/scoring/calculateAccuracy.ts<span class="lang">typescript</span></figcaption>
+                    <pre><code>const revAccuracy = clamp(
+  100 - Math.abs(1 - actualRevenue / expectedRevenue) * ACCURACY_REVENUE_SENSITIVITY,
+  0, 100); // sensitivity 200
+
+const phaseAccuracy = clamp(
+  100 - (Math.abs(actualPhases - expectedPhases) / Math.max(expectedPhases, 1))
+        * ACCURACY_PHASE_SENSITIVITY,
+  0, 100); // sensitivity 150
+
+return Math.round(ACCURACY_REVENUE_WEIGHT * revAccuracy
+                + ACCURACY_PHASE_WEIGHT  * phaseAccuracy);</code></pre>
+                  </figure>
+                  <div class="filelist"><div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/calculateAccuracy.ts">frontend/src/utils/scoring/calculateAccuracy.ts</code><span class="filecard-desc">Revenue + phase accuracy blend. <code>Math.max(expectedPhases,1)</code> guards divide-by-zero.</span></div></div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Defense <span class="sub-tag">calculateDefense.ts</span></summary>
+                <div class="sub-body">
+                  <p><strong>Measures:</strong> security posture weighted by stakes. <strong>Inputs:</strong> vulnerability count, expected breach cost. Each vuln costs 18 points; if there is at least one vuln, the breach cost (normalized by $500k) amplifies the penalty. This asymmetry is deliberate: a vuln on a high-breach-cost system hurts more.</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/utils/scoring/calculateDefense.ts<span class="lang">typescript</span></figcaption>
+                    <pre><code>const breachWeight = expectedBreachCost / DEFENSE_BREACH_DIVISOR; // / 500000
+const rawDefense   = 100 - vulnerabilities * DEFENSE_VULN_PENALTY; // - 18 each
+return Math.round(clamp(
+  rawDefense - (vulnerabilities > 0
+    ? breachWeight * DEFENSE_BREACH_PENALTY_FACTOR  // * 10
+    : 0),
+  0, 100));</code></pre>
+                  </figure>
+                  <div class="filelist"><div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/calculateDefense.ts">frontend/src/utils/scoring/calculateDefense.ts</code><span class="filecard-desc">Vuln penalty + breach-cost amplifier. Breach penalty only applies when vulns &gt; 0.</span></div></div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Strength <span class="sub-tag">calculateStrength.ts</span></summary>
+                <div class="sub-body">
+                  <p><strong>Measures:</strong> raw value delivered vs. promised — the simplest axis. <strong>Inputs:</strong> expected/actual revenue. Over-delivery caps at 100; under-delivery scales linearly.</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/utils/scoring/calculateStrength.ts<span class="lang">typescript</span></figcaption>
+                    <pre><code>return Math.round(
+  clamp((actualRevenue / Math.max(expectedRevenue, 1)) * 100, 0, 100)
+);</code></pre>
+                  </figure>
+                  <div class="filelist"><div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/calculateStrength.ts">frontend/src/utils/scoring/calculateStrength.ts</code><span class="filecard-desc">Revenue ratio × 100, clamped. No external constants.</span></div></div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Endurance <span class="sub-tag">calculateEndurance.ts</span></summary>
+                <div class="sub-body">
+                  <p><strong>Measures:</strong> compound effect on future delivery. <strong>Inputs:</strong> reusable components, intersecting projects. Two halves (max 50 each) that sum: reuse capped at 8 components, cross-pollination capped at 5 intersections.</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/utils/scoring/calculateEndurance.ts<span class="lang">typescript</span></figcaption>
+                    <pre><code>const reuse = clamp((reusableComponents / ENDURANCE_REUSE_CAP)
+                    * ENDURANCE_REUSE_MAX_POINTS, 0, ENDURANCE_REUSE_MAX_POINTS);
+const cross = clamp((intersectingProjects / ENDURANCE_INTERSECTION_CAP)
+                    * ENDURANCE_INTERSECTION_MAX_POINTS, 0, ENDURANCE_INTERSECTION_MAX_POINTS);
+return Math.round(reuse + cross);</code></pre>
+                  </figure>
+                  <div class="filelist"><div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/calculateEndurance.ts">frontend/src/utils/scoring/calculateEndurance.ts</code><span class="filecard-desc">Reuse + cross-pollination, each half-weighted to 50 points.</span></div></div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Overall &amp; Tier <span class="sub-tag">calculateOverall.ts · classifyTier.ts</span></summary>
+                <div class="sub-body">
+                  <p><strong>Overall</strong> is the unweighted mean of all five axes (rounded). <strong>Tier</strong> maps any 0–100 score to HIGH (≥75) / MID (≥45) / LOW (else).</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/utils/scoring/calculateOverall.ts · classifyTier.ts<span class="lang">typescript</span></figcaption>
+                    <pre><code>// calculateOverall.ts
+return Math.round((speed + accuracy + defense + strength + endurance) / 5);
+
+// classifyTier.ts
+if (score &gt;= TIER_HIGH_THRESHOLD) return "HIGH"; // 75
+if (score &gt;= TIER_MID_THRESHOLD)  return "MID";  // 45
+return "LOW";</code></pre>
+                  </figure>
+                  <div class="filelist">
+                    <div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/calculateOverall.ts">frontend/src/utils/scoring/calculateOverall.ts</code><span class="filecard-desc">5-axis mean. Kept as a named function so Phase 4 can introduce weights.</span></div>
+                    <div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/classifyTier.ts">frontend/src/utils/scoring/classifyTier.ts</code><span class="filecard-desc">Threshold classifier returning <code>Tier</code>.</span></div>
+                  </div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Compute orchestrators <span class="sub-tag">computeProjectScores.ts · computeAggregateScores.ts</span></summary>
+                <div class="sub-body">
+                  <p><code>computeProjectScores</code> is the one place that calls all five axis functions for a single <code>ProjectData</code> and wraps the result in a <code>ProjectScores</code> (scores + overall + tier). <code>computeAggregateScores</code> takes an array of <code>ProjectScores</code>, averages each axis across projects (rounded), then recomputes overall + tier on the averaged scores. The zero-project case returns an all-zero LOW aggregate.</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/utils/scoring/computeAggregateScores.ts (averaging core)<span class="lang">typescript</span></figcaption>
+                    <pre><code>for (const axis of axes) {
+  const sum = projectScores.reduce((acc, ps) =&gt; acc + ps.scores[axis], 0);
+  scores[axis] = Math.round(sum / count);
+}
+const overall = calculateOverall(scores);
+return { scores, overall, tier: classifyTier(overall), projectCount: count };</code></pre>
+                  </figure>
+                  <div class="callout note"><div class="callout-title">Aggregation order matters</div><div class="callout-body">Aggregate axes are averages of <em>already-rounded per-project axis scores</em>, and aggregate overall is computed from those averaged axes — not from per-project overalls. This matches the master-plan formula <code>axisAggregate = round(sum(perProjectScores[axis]) / projectCount)</code>.</div></div>
+                  <div class="filelist">
+                    <div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/computeProjectScores.ts">frontend/src/utils/scoring/computeProjectScores.ts</code><span class="filecard-desc">Single-project orchestrator → ProjectScores.</span></div>
+                    <div class="filecard"><code class="fileref" data-path="frontend/src/utils/scoring/computeAggregateScores.ts">frontend/src/utils/scoring/computeAggregateScores.ts</code><span class="filecard-desc">Team-level averaging → AggregateScores; handles empty input.</span></div>
+                  </div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>State store <span class="sub-tag">stores/projectStore.ts</span></summary>
+                <div class="sub-body">
+                  <p>The only stateful module. A Zustand store holding the project array + selected id, with CRUD actions and automatic localStorage persistence. Deleting the selected project clears the selection.</p>
+                  <figure class="code">
+                    <figcaption>frontend/src/stores/projectStore.ts<span class="lang">typescript</span></figcaption>
+                    <pre><code>export const useProjectStore = create&lt;ProjectStore&gt;()(
+  persist((set) =&gt; ({
+    projects: [],
+    selectedProjectId: null,
+    addProject:    (p) =&gt; set((s) =&gt; ({ projects: [...s.projects, p] })),
+    updateProject: (p) =&gt; set((s) =&gt; ({ projects: s.projects.map(...) })),
+    deleteProject: (id) =&gt; set((s) =&gt; ({ projects: s.projects.filter(...),
+                                          selectedProjectId: ... })),
+    selectProject: (id) =&gt; set({ selectedProjectId: id }),
+  }), { name: "ee-project-store" })
+);</code></pre>
+                  </figure>
+                  <div class="filelist"><div class="filecard"><code class="fileref" data-path="frontend/src/stores/projectStore.ts">frontend/src/stores/projectStore.ts</code><span class="filecard-desc">Zustand + persist middleware; localStorage key <code>ee-project-store</code>.</span></div></div>
+                  <div class="callout note"><div class="callout-title">Scores are not stored</div><div class="callout-body">The store holds only raw <code>ProjectData</code>. Scores are <em>derived</em> on demand by the compute functions — there is no scores slice to keep in sync. When the UI is built, scores should be memoized selectors over the store, not persisted state.</div></div>
+                </div>
+              </details>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 7. DATA MODELS ============================ -->
+        <section class="doc-section" id="data-model">
+          <details>
+            <summary><span class="sec-num">7</span><h2>Data models &amp; contracts</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">Five TypeScript interfaces/types, one per file under <code class="fileref dir" data-path="frontend/src/types/">frontend/src/types/</code>. These are <strong>sacred contracts</strong> — they are designed to become the Phase 2 API request/response models and database columns verbatim.</p>
+
+              <h3 class="anchor">ProjectData — the 10 input fields</h3>
+              <p>The raw input for one project. <code>id</code>/<code>name</code> are metadata; the other 10 fields feed the scoring engine.</p>
+              <div class="table-wrap"><table class="doc-table">
+                <thead><tr><th>Field</th><th>Type</th><th>Feeds</th><th>Notes</th></tr></thead>
+                <tbody>
+                  <tr><td><code>id</code></td><td>string</td><td>—</td><td><code>crypto.randomUUID()</code></td></tr>
+                  <tr><td><code>name</code></td><td>string</td><td>—</td><td>Project label</td></tr>
+                  <tr><td><code>targetDeliveryDate</code></td><td>string (ISO)</td><td>Speed</td><td>Originally committed date</td></tr>
+                  <tr><td><code>actualDeliveryDate</code></td><td>string (ISO)</td><td>Speed</td><td>Production-ready date</td></tr>
+                  <tr><td><code>expectedRevenue</code></td><td>number (USD)</td><td>Accuracy, Strength</td><td>Business case projection</td></tr>
+                  <tr><td><code>actualRevenue</code></td><td>number (USD)</td><td>Accuracy, Strength</td><td>Post-launch actuals</td></tr>
+                  <tr><td><code>expectedBreachCost</code></td><td>number (USD)</td><td>Defense</td><td>Risk-register estimate</td></tr>
+                  <tr><td><code>vulnerabilities</code></td><td>number (≥0)</td><td>Defense</td><td>Scanner/pen-test count at release</td></tr>
+                  <tr><td><code>expectedPhases</code></td><td>number (≥1)</td><td>Accuracy</td><td>Planned sprints/milestones</td></tr>
+                  <tr><td><code>actualPhases</code></td><td>number (≥1)</td><td>Accuracy</td><td>Consumed sprints/milestones</td></tr>
+                  <tr><td><code>intersectingProjects</code></td><td>number (≥0)</td><td>Endurance</td><td>Shared deps/teams/infra</td></tr>
+                  <tr><td><code>reusableComponents</code></td><td>number (≥0)</td><td>Endurance</td><td>Shared libs/APIs/templates produced</td></tr>
+                </tbody>
+              </table></div>
+
+              <h3 class="anchor">Score types</h3>
+              <dl class="doc-dl">
+                <dt>RadarScores</dt><dd>The five axes: <code>speed, accuracy, defense, strength, endurance</code>, each <code>0–100</code> integer. <code class="fileref" data-path="frontend/src/types/RadarScores.ts">RadarScores.ts</code></dd>
+                <dt>Tier</dt><dd>Union <code>"HIGH" | "MID" | "LOW"</code>. <code class="fileref" data-path="frontend/src/types/Tier.ts">Tier.ts</code></dd>
+                <dt>ProjectScores</dt><dd>Per-project result: <code>projectId</code>, <code>scores: RadarScores</code>, <code>overall</code>, <code>tier</code>. <code class="fileref" data-path="frontend/src/types/ProjectScores.ts">ProjectScores.ts</code></dd>
+                <dt>AggregateScores</dt><dd>Team-level result: averaged <code>scores</code>, <code>overall</code>, <code>tier</code>, <code>projectCount</code>. <code class="fileref" data-path="frontend/src/types/AggregateScores.ts">AggregateScores.ts</code></dd>
+              </dl>
+
+              <figure class="diagram">
+                <div class="mermaid">
+classDiagram
+    class ProjectData {
+      string id
+      string name
+      string targetDeliveryDate
+      string actualDeliveryDate
+      number expectedRevenue
+      number actualRevenue
+      number expectedBreachCost
+      number vulnerabilities
+      number expectedPhases
+      number actualPhases
+      number intersectingProjects
+      number reusableComponents
+    }
+    class RadarScores {
+      number speed
+      number accuracy
+      number defense
+      number strength
+      number endurance
+    }
+    class ProjectScores {
+      string projectId
+      RadarScores scores
+      number overall
+      Tier tier
+    }
+    class AggregateScores {
+      RadarScores scores
+      number overall
+      Tier tier
+      number projectCount
+    }
+    ProjectData --> ProjectScores : computeProjectScores
+    ProjectScores --> AggregateScores : computeAggregateScores
+    ProjectScores --> RadarScores
+    AggregateScores --> RadarScores
+                </div>
+                <div class="mermaid-fallback"><figure class="code"><figcaption>diagram source · mermaid</figcaption><pre><code>classDiagram
+    class ProjectData {
+      string id
+      string name
+      string targetDeliveryDate
+      ...10 input fields...
+    }
+    class RadarScores { number speed; number accuracy; number defense; number strength; number endurance }
+    class ProjectScores { string projectId; RadarScores scores; number overall; Tier tier }
+    class AggregateScores { RadarScores scores; number overall; Tier tier; number projectCount }
+    ProjectData --&gt; ProjectScores : computeProjectScores
+    ProjectScores --&gt; AggregateScores : computeAggregateScores
+    ProjectScores --&gt; RadarScores
+    AggregateScores --&gt; RadarScores</code></pre></figure></div>
+                <figcaption>Type relationships and the compute functions that bridge them.</figcaption>
+              </figure>
+
+              <h3 class="anchor">Phase 2 database mapping</h3>
+              <p>The master plan's ER diagram maps these contracts to four tables. <code>ProjectData</code> → <code>PROJECT</code>; <code>RadarScores</code> → <code>SCORE_SNAPSHOT</code>; plus <code>TEAM</code> and <code>THRESHOLD</code>. Field names are kept stable on purpose.</p>
+              <figure class="diagram">
+                <div class="mermaid">
+erDiagram
+    TEAM ||--o{ PROJECT : delivers
+    TEAM ||--o{ SCORE_SNAPSHOT : scored
+    TEAM ||--o{ THRESHOLD : has_rules
+    PROJECT {
+      uuid id PK
+      uuid team_id FK
+      date target_delivery_date
+      date actual_delivery_date
+      integer expected_revenue
+      integer actual_revenue
+      integer expected_breach_cost
+      integer vulnerability_count
+      integer expected_phases
+      integer actual_phases
+      integer intersecting_projects
+      integer reusable_components
+    }
+    SCORE_SNAPSHOT {
+      uuid id PK
+      uuid team_id FK
+      date snapshot_date
+      integer speed
+      integer accuracy
+      integer defense
+      integer strength
+      integer endurance
+      integer overall
+    }
+                </div>
+                <div class="mermaid-fallback"><figure class="code"><figcaption>diagram source · mermaid</figcaption><pre><code>erDiagram
+    TEAM ||--o{ PROJECT : delivers
+    TEAM ||--o{ SCORE_SNAPSHOT : scored
+    TEAM ||--o{ THRESHOLD : has_rules
+    PROJECT { uuid id PK; uuid team_id FK; date target_delivery_date; ...10 fields... }
+    SCORE_SNAPSHOT { uuid id PK; uuid team_id FK; date snapshot_date; integer speed; integer accuracy; integer defense; integer strength; integer endurance; integer overall }</code></pre></figure></div>
+                <figcaption>Planned Phase 2 schema (from the master plan). Not yet implemented — there is no backend today.</figcaption>
+              </figure>
+
+              <div class="callout danger">
+                <div class="callout-title">Do not</div>
+                <div class="callout-body">Do not rename or "simplify" any field in these interfaces without explicit approval. Per <code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> §4, they are the Phase 2 API + DB contract; a contract change is a minor semver bump and must update CLAUDE.md §4 and the master plan first.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 8. SCORING FORMULAS ============================ -->
+        <section class="doc-section" id="formulas">
+          <details>
+            <summary><span class="sec-num">8</span><h2>Scoring formulas &amp; key logic</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">The exact math, in plain language and as implemented. Every formula is the source of truth that the Phase 2 Python engine must reproduce identically. All axes round to integers and clamp to <code>0–100</code>.</p>
+
+              <div class="table-wrap"><table class="doc-table">
+                <thead><tr><th>Axis</th><th>Formula</th><th>Behavior</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Speed</strong></td>
+                    <td><code>clamp(100 × (1 − (slipDays / plannedDuration) × 2.5))</code><br><code>slipDays = max(0, daysBetween(target, actual))</code></td>
+                    <td>On-time/early = 100. A slip of 40% of planned duration zeroes the score. <em>plannedDuration is fixed at 180 days in the current code.</em></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Accuracy</strong></td>
+                    <td><code>0.5 × revAcc + 0.5 × phaseAcc</code><br><code>revAcc = clamp(100 − |1 − actR/expR| × 200)</code><br><code>phaseAcc = clamp(100 − |actP−expP|/max(expP,1) × 150)</code></td>
+                    <td>Revenue + scope discipline weighted equally. A 50% revenue miss drops revAcc to 0.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Defense</strong></td>
+                    <td><code>clamp(100 − vulns×18 − (vulns&gt;0 ? breachWeight×10 : 0))</code><br><code>breachWeight = breachCost / 500000</code></td>
+                    <td>~5–6 vulns alone zero the score; breach cost amplifies. No penalty amplification at zero vulns.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Strength</strong></td>
+                    <td><code>clamp(actR / max(expR,1) × 100)</code></td>
+                    <td>Linear value delivery; over-delivery caps at 100.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Endurance</strong></td>
+                    <td><code>clamp(reusable/8 × 50, 0, 50) + clamp(intersects/5 × 50, 0, 50)</code></td>
+                    <td>Two 50-point halves: reuse (cap 8) + cross-pollination (cap 5).</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Overall</strong></td>
+                    <td><code>round((spd+acc+def+str+end) / 5)</code></td>
+                    <td>Unweighted mean (Phase 1). Weighting deferred to Phase 4.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Tier</strong></td>
+                    <td><code>score≥75 → HIGH · score≥45 → MID · else LOW</code></td>
+                    <td>Boundary-inclusive thresholds.</td>
+                  </tr>
+                </tbody>
+              </table></div>
+
+              <h3 class="anchor">Worked example — Speed</h3>
+              <p>From the unit test in <code class="fileref" data-path="frontend/tests/unit/scoring/calculateSpeed.test.ts">calculateSpeed.test.ts</code>: a project targeting <code>2025-06-01</code> delivered <code>2025-07-01</code> is 30 days late. With <code>plannedDuration = 180</code>: <code>100 × (1 − (30/180) × 2.5) = 100 × (1 − 0.4167) = 58.33 → 58</code>. A project 80 days late goes negative and clamps to <code>0</code>.</p>
+
+              <div class="callout key">
+                <div class="callout-title">Key concept — defensibility</div>
+                <div class="callout-body">Every score on the radar can be traced backward: an axis value → its formula → the specific input fields and named constants. There is no place in the engine where a number appears without provenance. That is the entire point of the project.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 9. CONFIG / ENV ============================ -->
+        <section class="doc-section" id="config">
+          <details>
+            <summary><span class="sec-num">9</span><h2>Configuration &amp; environment</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">A tiny config surface: one port variable, the Vite/TS/Vitest configs, and the nginx serve config.</p>
+
+              <div class="table-wrap"><table class="doc-table">
+                <thead><tr><th>Variable</th><th>Default</th><th>Where</th><th>Meaning</th></tr></thead>
+                <tbody>
+                  <tr><td><code>VITE_PORT</code></td><td><code>5230</code></td><td><code class="fileref" data-path="frontend/vite.config.ts">vite.config.ts</code></td><td>Dev server port (read via <code>loadEnv</code>).</td></tr>
+                  <tr><td><code>EE_PORT</code></td><td><code>5230</code></td><td><code class="fileref" data-path="docker-compose.yml">docker-compose.yml</code> / launchers</td><td>Host port mapped to nginx :80 in Docker.</td></tr>
+                  <tr><td><code>VITE_API_BASE_URL</code></td><td><em>(commented)</em></td><td><code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> §8</td><td>Phase 2 forward-compat stub for the FastAPI base URL.</td></tr>
+                </tbody>
+              </table></div>
+
+              <div class="filelist">
+                <div class="filecard"><code class="fileref" data-path="frontend/vite.config.ts">frontend/vite.config.ts</code><span class="filecard-desc">React plugin; server port from <code>VITE_PORT</code> default 5230.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/tsconfig.app.json">frontend/tsconfig.app.json</code><span class="filecard-desc">Strict mode, bundler resolution, <code>allowImportingTsExtensions</code>, noUnusedLocals/Params.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/vitest.config.ts">frontend/vitest.config.ts</code><span class="filecard-desc">jsdom env, setup file, v8 coverage over <code>src/**</code> excluding <code>main.tsx</code>.</span></div>
+                <div class="filecard"><code class="fileref" data-path="nginx.conf">nginx.conf</code><span class="filecard-desc">SPA <code>try_files</code> fallback, 1-year asset cache, X-Frame/Content-Type/XSS/Referrer headers.</span></div>
+              </div>
+
+              <div class="callout warn">
+                <div class="callout-title">Port note</div>
+                <div class="callout-body">Both Docker (<code>EE_PORT</code>) and the dev server (<code>VITE_PORT</code>) default to <strong>5230</strong>. CLAUDE.md §8 lists <code>VITE_PORT=5173</code> in one place but the actual <code>vite.config.ts</code> default is 5230 — the config file is authoritative. There is no committed <code>.env</code> file in the tree; defaults apply unless you create one.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 10. HOW TO RUN ============================ -->
+        <section class="doc-section" id="run">
+          <details>
+            <summary><span class="sec-num">10</span><h2>How to run it</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">Two paths: local dev with pnpm + Vite, or Docker via the launcher script. Both expose the app on port <strong>5230</strong>.</p>
+
+              <h3 class="anchor">Local dev (no Docker)</h3>
+              <ol class="steps">
+                <li><code>cd frontend</code></li>
+                <li><code>pnpm install</code> — installs deps from <code class="fileref" data-path="frontend/pnpm-lock.yaml">pnpm-lock.yaml</code>.</li>
+                <li><code>pnpm dev</code> — Vite dev server at <code>http://localhost:5230</code>.</li>
+                <li><code>pnpm lint</code> · <code>pnpm test</code> · <code>pnpm build</code> as needed.</li>
+              </ol>
+
+              <h3 class="anchor">Docker (launcher)</h3>
+              <ol class="steps">
+                <li>Run <code class="fileref" data-path="run_engineering_effectiveness.sh">run_engineering_effectiveness.sh</code> (macOS/Linux) or <code class="fileref" data-path="run_engineering_effectiveness.bat">run_engineering_effectiveness.bat</code> (Windows).</li>
+                <li>The script runs <code>docker compose up --build -d</code>, waits for <code>http://localhost:5230</code> to respond, then opens it.</li>
+                <li>At the menu, pick: <code>k</code> stop (keep image) · <code>q</code> stop + remove image · <code>v</code> stop + remove image + volumes · <code>r</code> full restart (rebuild + relaunch).</li>
+              </ol>
+
+              <p>Or directly: <code>docker compose up --build</code> from the repo root (see <code class="fileref" data-path="docker-compose.yml">docker-compose.yml</code>).</p>
+
+              <div class="callout note">
+                <div class="callout-title">What you see today</div>
+                <div class="callout-body">Because the UI is still a placeholder, running the app currently shows only the heading "Engineering Effectiveness Radar" and "Phase 1 — Frontend MVP". The scoring engine is exercised through the test suite, not the screen, until the radar/table/form components are built. For a visual of the intended UI, open the standalone <code class="fileref" data-path="effectiveness.jsx">effectiveness.jsx</code> prototype.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 11. HOW TO EDIT / EXTEND ============================ -->
+        <section class="doc-section" id="editing">
+          <details>
+            <summary><span class="sec-num">11</span><h2>How to edit / extend it</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">Owner-focused playbook: where each kind of change lives and the files you touch. The golden rule from <code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code>: re-read CLAUDE.md + the master plan + <code>docs/status.md</code> before any change, and keep one concept per file.</p>
+
+              <details class="sub">
+                <summary>Recalibrate the scoring (change sensitivity)</summary>
+                <div class="sub-body">
+                  <p>Edit only <code class="fileref" data-path="frontend/src/utils/scoring/scoringConstants.ts">scoringConstants.ts</code>. Change a constant (e.g. <code>SPEED_SENSITIVITY_MULTIPLIER</code> from 2.5 → 2.0 to be more forgiving). Then update the affected unit tests' expected values, and document the change in <code class="fileref" data-path="docs/versions.md">docs/versions.md</code> + the master plan's calibration table. No formula file changes.</p>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Add or change an axis formula</summary>
+                <div class="sub-body">
+                  <p>Edit the relevant <code>calculate*.ts</code> file (e.g. <code class="fileref" data-path="frontend/src/utils/scoring/calculateDefense.ts">calculateDefense.ts</code>). Keep new numbers as named constants in <code>scoringConstants.ts</code> — never inline literals. Add/update the matching test under <code class="fileref dir" data-path="frontend/tests/unit/scoring/">frontend/tests/unit/scoring/</code> with an analytical expected value. Mirror the formula change in <code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> §5 and the master plan (these are the cross-language source of truth).</p>
+                  <div class="callout warn"><div class="callout-title">Fix Speed's planned-duration first if you touch it</div><div class="callout-body">If you make Speed per-project (the documented intent), you must add a start/baseline date to <code class="fileref" data-path="frontend/src/types/ProjectData.ts">ProjectData.ts</code> — which is a data-contract change requiring approval and a contract-doc update.</div></div>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Build the radar chart (next Phase-1 task)</summary>
+                <div class="sub-body">
+                  <p>Create a single component (e.g. <code>frontend/src/features/radar/RadarChart.tsx</code> per the CLAUDE.md intended layout) that takes a <code>RadarScores</code> prop and renders <code>react-chartjs-2</code>'s <code>Radar</code>. Register the needed Chart.js scales/elements once. Keep <em>all</em> Chart.js imports inside this file so a future WebGL/d3 swap touches nothing else. Reference the prototype's axis order and tier colors in <code class="fileref" data-path="effectiveness.jsx">effectiveness.jsx</code> (cyan fill, green/yellow/red tier dots).</p>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Build the data-entry form &amp; project table</summary>
+                <div class="sub-body">
+                  <p>Use react-bootstrap. The form writes a <code>ProjectData</code> (with <code>crypto.randomUUID()</code> for <code>id</code>) via <code>useProjectStore().addProject</code>. The table reads <code>projects</code> and calls <code>selectProject(id)</code> on row click — when a project is selected, score against <code>[selectedProject]</code>; otherwise aggregate over all. Mirror the prototype's "tap row to isolate / tap again to aggregate" UX in <code class="fileref" data-path="effectiveness.jsx">effectiveness.jsx</code>. Watch the jsdom Modal pitfall noted in <code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> §9 when testing.</p>
+                </div>
+              </details>
+
+              <details class="sub">
+                <summary>Wire scores into the UI</summary>
+                <div class="sub-body">
+                  <p>Derive scores with <code>useMemo</code> over the store selection: map selected/all <code>ProjectData</code> through <code class="fileref" data-path="frontend/src/utils/scoring/computeProjectScores.ts">computeProjectScores</code>, then <code class="fileref" data-path="frontend/src/utils/scoring/computeAggregateScores.ts">computeAggregateScores</code>. Never store derived scores in Zustand — they are pure functions of the project list.</p>
+                </div>
+              </details>
+
+              <div class="callout tip">
+                <div class="callout-title">Conventions to respect</div>
+                <div class="callout-body">One concept per file (no god files). No <code>any</code>, no <code>@ts-ignore</code> without justification. <code>const</code> by default. <code>interface</code> for object shapes. No magic numbers — named constants only. Search the codebase before adding a new function (the scoring helpers already cover the math). Update <code class="fileref" data-path="docs/status.md">docs/status.md</code> and <code class="fileref" data-path="docs/versions.md">docs/versions.md</code> after any code change.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 12. TESTING ============================ -->
+        <section class="doc-section" id="testing">
+          <details>
+            <summary><span class="sec-num">12</span><h2>Testing</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">Vitest + React Testing Library, jsdom environment, v8 coverage. The standing target is <strong>100% coverage on the scoring math</strong>; every formula is tested against hand-computed analytical values.</p>
+
+              <h3 class="anchor">Running</h3>
+              <ol class="steps">
+                <li><code>cd frontend</code></li>
+                <li><code>pnpm test</code> — single run (<code>vitest run</code>).</li>
+                <li><code>pnpm test:watch</code> — watch mode.</li>
+                <li><code>pnpm test:coverage</code> — with v8 coverage report.</li>
+              </ol>
+
+              <h3 class="anchor">What's covered</h3>
+              <div class="filelist">
+                <div class="filecard"><code class="fileref" data-path="frontend/tests/unit/scoring/calculateSpeed.test.ts">calculateSpeed.test.ts</code><span class="filecard-desc">On-time, early, moderate slip (58), severe slip (clamped 0).</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/tests/unit/scoring/calculateAccuracy.test.ts">calculateAccuracy.test.ts</code><span class="filecard-desc">Revenue + phase accuracy blend.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/tests/unit/scoring/calculateDefense.test.ts">calculateDefense.test.ts</code><span class="filecard-desc">Vuln penalty + breach amplification + zero-vuln case.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/tests/unit/scoring/calculateStrength.test.ts">calculateStrength.test.ts</code><span class="filecard-desc">Under/over delivery, clamping.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/tests/unit/scoring/calculateEndurance.test.ts">calculateEndurance.test.ts</code><span class="filecard-desc">Reuse + intersection caps.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/tests/unit/scoring/calculateOverall.test.ts">calculateOverall.test.ts</code><span class="filecard-desc">5-axis mean.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/tests/unit/scoring/classifyTier.test.ts">classifyTier.test.ts</code><span class="filecard-desc">Boundary values 75 / 74 / 45 / 44 / 0 / 100.</span></div>
+                <div class="filecard"><code class="fileref" data-path="frontend/tests/setup.ts">tests/setup.ts</code><span class="filecard-desc">RTL <code>cleanup()</code> in <code>afterEach</code> + jest-dom matchers.</span></div>
+              </div>
+
+              <div class="callout warn">
+                <div class="callout-title">Known pitfalls (from CLAUDE.md §9)</div>
+                <div class="callout-body">Vitest does <em>not</em> auto-cleanup like Jest — <code class="fileref" data-path="frontend/tests/setup.ts">setup.ts</code> must call <code>cleanup()</code> in <code>afterEach</code> (it does). React-Bootstrap <code>Modal</code> renders portal duplicates in jsdom — scope queries with <code>within(screen.getByRole("dialog"))</code> when you build modal tests.</div>
+              </div>
+              <div class="callout note"><div class="callout-title">Coverage scope today</div><div class="callout-body">Coverage includes <code>src/**</code> and excludes <code>main.tsx</code>. The <code>compute*</code> orchestrators and the store don't yet have dedicated tests — the 7 test files cover the individual axis functions and tier classifier. Add orchestrator/store tests as the UI lands to hold the 100% line.</div></div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 13. BUILD / CI ============================ -->
+        <section class="doc-section" id="ci">
+          <details>
+            <summary><span class="sec-num">13</span><h2>Build, CI &amp; deployment</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">CI runs on <strong>GitHub Actions</strong> with four sequential jobs; releases bump <code>frontend/package.json</code> via a manual workflow.</p>
+
+              <h3 class="anchor">CI pipeline</h3>
+              <figure class="diagram">
+                <div class="mermaid">
+graph LR
+    LINT[lint pnpm lint] --> TEST[test pnpm test --coverage]
+    TEST --> BUILD[build pnpm build + upload dist]
+    BUILD --> DOCKER[docker-build buildx]
+                </div>
+                <div class="mermaid-fallback"><figure class="code"><figcaption>diagram source · mermaid</figcaption><pre><code>graph LR
+    LINT[lint pnpm lint] --&gt; TEST[test pnpm test --coverage]
+    TEST --&gt; BUILD[build pnpm build + upload dist]
+    BUILD --&gt; DOCKER[docker-build buildx]</code></pre></figure></div>
+                <figcaption>Sequential jobs from <code>.github/workflows/ci.yml</code>; each <code>needs</code> the previous.</figcaption>
+              </figure>
+
+              <div class="table-wrap"><table class="doc-table">
+                <thead><tr><th>Job</th><th>Command</th><th>Condition</th></tr></thead>
+                <tbody>
+                  <tr><td>lint</td><td><code>pnpm lint</code></td><td>push/PR on main, staging, dev</td></tr>
+                  <tr><td>test</td><td><code>pnpm test -- --coverage</code> (+ junit)</td><td>needs lint</td></tr>
+                  <tr><td>build</td><td><code>pnpm build</code>, uploads <code>frontend/dist/</code></td><td>needs test</td></tr>
+                  <tr><td>docker-build</td><td>buildx build (no push, gha cache)</td><td>needs build; only main/staging</td></tr>
+                </tbody>
+              </table></div>
+
+              <h3 class="anchor">Docker build</h3>
+              <p>Two-stage: stage 1 (<code>node:20-alpine</code>) enables corepack, installs with <code>--frozen-lockfile</code>, runs <code>pnpm build</code>; stage 2 (<code>nginx:alpine</code>) copies <code class="fileref" data-path="nginx.conf">nginx.conf</code> and the built <code>dist/</code>, exposes 80. See <code class="fileref" data-path="Dockerfile">Dockerfile</code>.</p>
+
+              <h3 class="anchor">Release / versioning</h3>
+              <p>The manual <code class="fileref" data-path=".github/workflows/release.yml">release.yml</code> workflow (dispatch with a <code>bump</code> input of patch/minor/major) runs <code>pnpm version</code> on <code>frontend/package.json</code>, commits <code>release: vX.Y.Z</code>, tags, and pushes. The <code>version</code> field in <code class="fileref" data-path="frontend/package.json">frontend/package.json</code> is the single source of truth; <code class="fileref" data-path="docs/versions.md">docs/versions.md</code> documents the computed next version.</p>
+
+              <div class="callout warn">
+                <div class="callout-title">Doc drift: CI provider</div>
+                <div class="callout-body"><code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code> §7 references a <code>.gitlab-ci.yml</code> with GitLab stages, but this repo actually uses <strong>GitHub Actions</strong> (<code class="fileref dir" data-path=".github/workflows/">.github/workflows/</code>) — there is no <code>.gitlab-ci.yml</code>. <code class="fileref" data-path="docs/status.md">docs/status.md</code> confirms the GitHub Actions choice. Treat the workflows as authoritative.</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 14. ROADMAP ============================ -->
+        <section class="doc-section" id="roadmap">
+          <details>
+            <summary><span class="sec-num">14</span><h2>Roadmap / phases</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">Five phases, each producing something usable. Earlier phases can run manually while later ones are built. Full detail in <code class="fileref" data-path="ENGINEERING_EFFECTIVENESS_MASTER_PLAN.md">ENGINEERING_EFFECTIVENESS_MASTER_PLAN.md</code>.</p>
+
+              <figure class="diagram">
+                <div class="mermaid">
+gantt
+    title Effectiveness Radar — Phases
+    dateFormat YYYY-MM-DD
+    axisFormat %b %Y
+    section P1 Frontend MVP
+    React TS Chart.js radar      :p1a, 2026-05-01, 21d
+    Data entry + scoring engine  :p1b, after p1a, 14d
+    Docker + CI                  :p1c, after p1b, 7d
+    section P2 Backend
+    FastAPI + PostgreSQL         :p2a, after p1c, 14d
+    REST + server scoring        :p2b, after p2a, 14d
+    section P3 Integrations
+    Jira / ADO connector         :p3a, after p2b, 14d
+    Security webhooks            :p3b, after p2b, 10d
+    section P4 Analytics
+    Snapshots + trends           :p4a, after p3a, 10d
+    Comparison + alerts          :p4b, after p4a, 14d
+    section P5 Automation
+    Full pipeline + widget       :p5a, after p4b, 31d
+                </div>
+                <div class="mermaid-fallback"><figure class="code"><figcaption>diagram source · mermaid</figcaption><pre><code>gantt
+    title Effectiveness Radar — Phases
+    dateFormat YYYY-MM-DD
+    section P1 Frontend MVP
+    React TS Chart.js radar      :p1a, 2026-05-01, 21d
+    Data entry + scoring engine  :p1b, after p1a, 14d
+    Docker + CI                  :p1c, after p1b, 7d
+    section P2 Backend
+    FastAPI + PostgreSQL         :p2a, after p1c, 14d
+    REST + server scoring        :p2b, after p2a, 14d
+    section P3 Integrations
+    Jira / ADO connector         :p3a, after p2b, 14d
+    Security webhooks            :p3b, after p2b, 10d
+    section P4 Analytics
+    Snapshots + trends           :p4a, after p3a, 10d
+    Comparison + alerts          :p4b, after p4a, 14d
+    section P5 Automation
+    Full pipeline + widget       :p5a, after p4b, 31d</code></pre></figure></div>
+                <figcaption>Phase roadmap (dates illustrative, from the master plan).</figcaption>
+              </figure>
+
+              <div class="table-wrap"><table class="doc-table">
+                <thead><tr><th>Phase</th><th>Delivers</th><th>State</th></tr></thead>
+                <tbody>
+                  <tr><td>1 — Frontend MVP</td><td>React radar, manual entry, client scoring, localStorage, Docker, CI</td><td>In progress (engine done, UI pending)</td></tr>
+                  <tr><td>2 — Structured Storage</td><td>FastAPI + Postgres, REST CRUD, Python scoring engine, web form on API</td><td>Planned</td></tr>
+                  <tr><td>3 — Semi-Automated Ingestion</td><td>Jira/ADO connectors, security webhooks, finance CSV import, validation UI</td><td>Planned</td></tr>
+                  <tr><td>4 — Analytics &amp; Comparison</td><td>Snapshots + trends, team-vs-team overlay, drill-down, threshold alerts</td><td>Planned</td></tr>
+                  <tr><td>5 — Full Automation</td><td>Zero-manual pipeline, revenue attribution, service catalog, embeddable widget</td><td>Planned</td></tr>
+                </tbody>
+              </table></div>
+
+              <h3 class="anchor">Calibration knobs (master plan)</h3>
+              <div class="table-wrap"><table class="doc-table">
+                <thead><tr><th>Parameter</th><th>Default</th><th>Controls</th></tr></thead>
+                <tbody>
+                  <tr><td>Speed multiplier</td><td>2.5</td><td>How fast the score drops per day of slip.</td></tr>
+                  <tr><td>Vuln penalty</td><td>18</td><td>Points lost per vulnerability.</td></tr>
+                  <tr><td>Breach divisor</td><td>500,000</td><td>Normalizes breach cost into a weight.</td></tr>
+                  <tr><td>Reuse cap</td><td>8</td><td>Components for full reuse half-score.</td></tr>
+                  <tr><td>Intersection cap</td><td>5</td><td>Intersecting projects for full cross half-score.</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 15. GLOSSARY ============================ -->
+        <section class="doc-section" id="glossary">
+          <details>
+            <summary><span class="sec-num">15</span><h2>Domain glossary</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">The vocabulary a newcomer needs to read the formulas and the master plan.</p>
+              <dl class="doc-dl">
+                <dt>Effectiveness Radar</dt><dd>The five-axis radar chart that is the project's single output.</dd>
+                <dt>Axis</dt><dd>One of the five scored dimensions: Speed, Accuracy, Defense, Strength, Endurance. Each 0–100.</dd>
+                <dt>Speed</dt><dd>Delivery punctuality vs. committed timeline (target vs. actual date).</dd>
+                <dt>Accuracy</dt><dd>How closely outcome matched plan — 50% revenue accuracy + 50% phase (scope) accuracy.</dd>
+                <dt>Defense</dt><dd>Security posture: vulnerability count penalized, amplified by breach cost.</dd>
+                <dt>Strength</dt><dd>Raw value delivered vs. promised (actual ÷ expected revenue).</dd>
+                <dt>Endurance</dt><dd>Compound effect on future delivery: reusable components + intersecting projects.</dd>
+                <dt>Tier</dt><dd>Categorical label for any score: HIGH (75–100), MID (45–74), LOW (0–44).</dd>
+                <dt>Slip days</dt><dd>Days late = <code>max(0, actual − target)</code>. Negative slip (early) clamps to 0.</dd>
+                <dt>Planned duration</dt><dd>The denominator Speed scales slip against. Currently fixed at 180 days (see Speed note).</dd>
+                <dt>Breach weight</dt><dd><code>expectedBreachCost / 500000</code> — the severity multiplier on vuln penalties.</dd>
+                <dt>Aggregate scores</dt><dd>Team-level radar: per-axis average across all projects, then overall + tier.</dd>
+                <dt>Per-project scores</dt><dd>A single project's radar, used for drill-down / isolation.</dd>
+                <dt>Intersecting projects</dt><dd>Other active projects sharing deps, teams, infra, or deliverables.</dd>
+                <dt>Reusable components</dt><dd>Artifacts built for reuse: shared libs, APIs, templates, IaC modules.</dd>
+              </dl>
+            </div>
+          </details>
+        </section>
+
+        <!-- ============================ 16. KEY FILES INDEX ============================ -->
+        <section class="doc-section" id="file-index">
+          <details>
+            <summary><span class="sec-num">16</span><h2>Key files index</h2><span class="chevron"></span></summary>
+            <div class="sec-body">
+              <p class="lead-in">A single jump-off map of the files that matter most.</p>
+              <div class="table-wrap"><table class="doc-table">
+                <thead><tr><th>File</th><th>What it's for</th></tr></thead>
+                <tbody>
+                  <tr><td><code class="fileref" data-path="ENGINEERING_EFFECTIVENESS_MASTER_PLAN.md">ENGINEERING_EFFECTIVENESS_MASTER_PLAN.md</code></td><td>Authoritative spec — model, formulas, data dictionary, phases, calibration.</td></tr>
+                  <tr><td><code class="fileref" data-path="CLAUDE.md">CLAUDE.md</code></td><td>Dev/AI operating rules, data contracts, phase constraints.</td></tr>
+                  <tr><td><code class="fileref" data-path="README.md">README.md</code></td><td>Human overview with Mermaid diagrams.</td></tr>
+                  <tr><td><code class="fileref" data-path="effectiveness.jsx">effectiveness.jsx</code></td><td>Reference prototype: working SVG radar, table, derivation panel, 8 sample projects.</td></tr>
+                  <tr><td><code class="fileref" data-path="docs/status.md">docs/status.md</code></td><td>Live state — what exists, what's next.</td></tr>
+                  <tr><td><code class="fileref" data-path="docs/versions.md">docs/versions.md</code></td><td>Semver changelog.</td></tr>
+                  <tr><td><code class="fileref" data-path="frontend/package.json">frontend/package.json</code></td><td>Deps, scripts, source-of-truth version (0.2.0).</td></tr>
+                  <tr><td><code class="fileref" data-path="frontend/src/App.tsx">frontend/src/App.tsx</code></td><td>Root component — placeholder shell (UI pending).</td></tr>
+                  <tr><td><code class="fileref" data-path="frontend/src/stores/projectStore.ts">frontend/src/stores/projectStore.ts</code></td><td>Zustand store + localStorage persistence.</td></tr>
+                  <tr><td><code class="fileref" data-path="frontend/src/utils/scoring/scoringConstants.ts">…/scoring/scoringConstants.ts</code></td><td>All 14 tunable constants — the calibration file.</td></tr>
+                  <tr><td><code class="fileref" data-path="frontend/src/utils/scoring/computeProjectScores.ts">…/scoring/computeProjectScores.ts</code></td><td>Single-project scoring orchestrator.</td></tr>
+                  <tr><td><code class="fileref" data-path="frontend/src/utils/scoring/computeAggregateScores.ts">…/scoring/computeAggregateScores.ts</code></td><td>Team-level aggregation orchestrator.</td></tr>
+                  <tr><td><code class="fileref dir" data-path="frontend/src/types/">frontend/src/types/</code></td><td>The five sacred type contracts.</td></tr>
+                  <tr><td><code class="fileref" data-path="Dockerfile">Dockerfile</code></td><td>Multi-stage node→nginx image.</td></tr>
+                  <tr><td><code class="fileref" data-path="docker-compose.yml">docker-compose.yml</code></td><td>Single service, port 5230→80.</td></tr>
+                  <tr><td><code class="fileref" data-path="nginx.conf">nginx.conf</code></td><td>SPA serve config.</td></tr>
+                  <tr><td><code class="fileref" data-path="run_engineering_effectiveness.sh">run_engineering_effectiveness.sh</code></td><td>Docker launcher with [k/q/v/r] menu.</td></tr>
+                  <tr><td><code class="fileref" data-path=".github/workflows/ci.yml">.github/workflows/ci.yml</code></td><td>CI: lint → test → build → docker-build.</td></tr>
+                  <tr><td><code class="fileref" data-path=".github/workflows/release.yml">.github/workflows/release.yml</code></td><td>Manual version bump + tag.</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </details>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <button id="backTop" title="Back to top"><span class="ico"></span></button>
+
+  <footer class="doc-footer">
+    <p>Human-facing documentation for <strong>engineering-effectiveness</strong> · generated 2026-06-07.
+    Styling and behavior are inlined directly into this file — it is fully self-contained and needs no external assets. Re-open after editing source to keep this guide in sync.</p>
+  </footer>
+
+  <script>
+/* ============================================================================
+   doc.js — Shared behavior for every project's PROJECT_DOCUMENTATION.html.
+   Inlined directly into this PROJECT_DOCUMENTATION.html (self-contained; no external script).
+   Responsibilities:
+     - theme (light/dark) with persistence
+     - auto-built table of contents from <section class="doc-section"> + h3 anchors
+     - scroll-spy active highlighting
+     - live full-text section filter (search box)
+     - expand-all / collapse-all
+     - click-to-copy file references and code blocks
+     - scroll progress bar + back-to-top
+     - mermaid diagram rendering (CDN) with graceful source fallback
+     - print = expand everything
+   No build step, no framework. Pure DOM.
+   ============================================================================ */
+(function () {
+  "use strict";
+
+  var THEME_KEY = "projDocTheme";
+
+  /* ---- theme (apply ASAP to avoid flash) ---- */
+  function preferredTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+    if (saved === "light" || saved === "dark") return saved;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  function applyTheme(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    var btn = document.getElementById("themeToggle");
+    if (btn) {
+      var ico = btn.querySelector(".ico");
+      if (ico) ico.style.webkitMaskImage = ico.style.maskImage = "var(--icon-" + (t === "dark" ? "sun" : "moon") + ")";
+      btn.setAttribute("aria-label", t === "dark" ? "Switch to light theme" : "Switch to dark theme");
+    }
+  }
+  applyTheme(preferredTheme());
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  function init() {
+    applyTheme(preferredTheme());
+    buildTOC();
+    wireControls();
+    wireFileRefs();
+    wireCodeCopy();
+    wireScrollProgress();
+    wireBackToTop();
+    wireScrollSpy();
+    wirePrint();
+    initMermaid();
+    handleInitialHash();
+  }
+
+  /* ---- slugify ---- */
+  function slug(s) {
+    return s.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 60);
+  }
+
+  /* ---- TOC ---- */
+  function buildTOC() {
+    var toc = document.getElementById("docToc");
+    if (!toc) return;
+    var sections = Array.prototype.slice.call(document.querySelectorAll("main .doc-section"));
+    if (!sections.length) return;
+    var ul = document.createElement("ul");
+    var n = 0;
+    sections.forEach(function (sec) {
+      n++;
+      if (!sec.id) sec.id = "sec-" + n;
+      var h2 = sec.querySelector("summary h2");
+      var title = h2 ? h2.textContent.trim() : ("Section " + n);
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = "#" + sec.id;
+      a.dataset.target = sec.id;
+      a.innerHTML = '<span class="toc-num">' + n + "</span>" + escapeHTML(title);
+      li.appendChild(a);
+      ul.appendChild(li);
+
+      // nested h3 anchors marked with class "anchor"
+      var subs = sec.querySelectorAll("h3.anchor");
+      Array.prototype.forEach.call(subs, function (h3) {
+        if (!h3.id) h3.id = sec.id + "-" + slug(h3.textContent);
+        var sli = document.createElement("li");
+        var sa = document.createElement("a");
+        sa.href = "#" + h3.id;
+        sa.className = "sub";
+        sa.dataset.target = h3.id;
+        sa.textContent = h3.textContent.trim();
+        sli.appendChild(sa);
+        ul.appendChild(sli);
+      });
+    });
+    toc.appendChild(ul);
+
+    // smooth scroll with header offset, and open target section
+    toc.addEventListener("click", function (e) {
+      var a = e.target.closest("a");
+      if (!a) return;
+      e.preventDefault();
+      var id = a.dataset.target;
+      revealAndScroll(id);
+      history.replaceState(null, "", "#" + id);
+    });
+  }
+
+  function revealAndScroll(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    // open the enclosing section + any parent <details>
+    var d = el.closest("details");
+    while (d) { d.open = true; d = d.parentElement ? d.parentElement.closest("details") : null; }
+    var sec = el.closest(".doc-section") || el;
+    if (sec.querySelector) {
+      var det = sec.querySelector(":scope > details");
+      if (det) det.open = true;
+    }
+    setTimeout(function () {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 30);
+  }
+
+  /* ---- controls (expand/collapse/theme/print/search) ---- */
+  function wireControls() {
+    var expand = document.getElementById("expandAll");
+    var collapse = document.getElementById("collapseAll");
+    var theme = document.getElementById("themeToggle");
+    var print = document.getElementById("printBtn");
+    var search = document.getElementById("docSearch");
+
+    if (expand) expand.addEventListener("click", function () { allDetails().forEach(function (d) { d.open = true; }); });
+    if (collapse) collapse.addEventListener("click", function () {
+      document.querySelectorAll("main .doc-section > details").forEach(function (d) { d.open = false; });
+      document.querySelectorAll("main details.sub").forEach(function (d) { d.open = false; });
+    });
+    if (theme) theme.addEventListener("click", function () {
+      var cur = document.documentElement.getAttribute("data-theme");
+      var next = cur === "dark" ? "light" : "dark";
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+      applyTheme(next);
+    });
+    if (print) print.addEventListener("click", function () { window.print(); });
+    if (search) wireSearch(search);
+  }
+
+  function allDetails() { return Array.prototype.slice.call(document.querySelectorAll("main details")); }
+
+  /* ---- search / filter ---- */
+  function wireSearch(input) {
+    var countEl = document.querySelector(".search-count");
+    var sections = Array.prototype.slice.call(document.querySelectorAll("main .doc-section"));
+    var tocLinks = Array.prototype.slice.call(document.querySelectorAll("#docToc a"));
+    var debounce;
+    input.addEventListener("input", function () {
+      clearTimeout(debounce);
+      debounce = setTimeout(run, 120);
+    });
+    input.addEventListener("keydown", function (e) { if (e.key === "Escape") { input.value = ""; run(); input.blur(); } });
+
+    function run() {
+      var q = input.value.trim().toLowerCase();
+      var shown = 0;
+      if (!q) {
+        sections.forEach(function (s) { s.classList.remove("filtered-out"); });
+        tocLinks.forEach(function (a) { a.classList.remove("filtered-out"); });
+        if (countEl) countEl.textContent = "";
+        return;
+      }
+      sections.forEach(function (s) {
+        var match = s.textContent.toLowerCase().indexOf(q) !== -1;
+        s.classList.toggle("filtered-out", !match);
+        if (match) {
+          shown++;
+          var det = s.querySelector(":scope > details");
+          if (det) det.open = true;
+        }
+        var link = document.querySelector('#docToc a[data-target="' + s.id + '"]');
+        if (link) link.classList.toggle("filtered-out", !match);
+      });
+      if (countEl) countEl.textContent = shown + (shown === 1 ? " match" : " matches");
+    }
+  }
+
+  /* ---- file references: click to copy path ---- */
+  function wireFileRefs() {
+    document.body.addEventListener("click", function (e) {
+      var ref = e.target.closest("code.fileref");
+      if (!ref) return;
+      var path = ref.getAttribute("data-path") || ref.textContent.trim();
+      copyText(path).then(function () {
+        var old = ref.textContent;
+        ref.classList.add("copied");
+        ref.textContent = "copied: " + path;
+        setTimeout(function () { ref.textContent = old; ref.classList.remove("copied"); }, 1100);
+      });
+    });
+  }
+
+  /* ---- code blocks: copy button ---- */
+  function wireCodeCopy() {
+    document.querySelectorAll("figure.code").forEach(function (fig) {
+      var pre = fig.querySelector("pre");
+      if (!pre) return;
+      var btn = document.createElement("button");
+      btn.className = "btn code-copy";
+      btn.innerHTML = '<span class="ico" style="-webkit-mask:var(--icon-copy) center/contain no-repeat;mask:var(--icon-copy) center/contain no-repeat"></span><span class="label">Copy</span>';
+      btn.addEventListener("click", function () {
+        copyText(pre.innerText).then(function () {
+          var l = btn.querySelector(".label");
+          if (l) { l.textContent = "Copied"; setTimeout(function () { l.textContent = "Copy"; }, 1100); }
+        });
+      });
+      fig.appendChild(btn);
+    });
+  }
+
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t).catch(fallback);
+    return fallback();
+    function fallback() {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select(); document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch (e) {}
+      return Promise.resolve();
+    }
+  }
+
+  /* ---- scroll progress ---- */
+  function wireScrollProgress() {
+    var bar = document.getElementById("scrollProgress");
+    if (!bar) return;
+    function upd() {
+      var h = document.documentElement;
+      var max = h.scrollHeight - h.clientHeight;
+      var pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+      bar.style.width = pct + "%";
+    }
+    window.addEventListener("scroll", upd, { passive: true });
+    window.addEventListener("resize", upd);
+    upd();
+  }
+
+  /* ---- back to top ---- */
+  function wireBackToTop() {
+    var b = document.getElementById("backTop");
+    if (!b) return;
+    b.addEventListener("click", function () { window.scrollTo({ top: 0, behavior: "smooth" }); });
+    window.addEventListener("scroll", function () {
+      b.classList.toggle("show", window.scrollY > 600);
+    }, { passive: true });
+  }
+
+  /* ---- scroll-spy ---- */
+  function wireScrollSpy() {
+    var links = {};
+    document.querySelectorAll("#docToc a").forEach(function (a) { links[a.dataset.target] = a; });
+    var targets = Array.prototype.slice.call(document.querySelectorAll("main .doc-section, main h3.anchor"));
+    if (!targets.length || !("IntersectionObserver" in window)) return;
+    var visible = new Set();
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) visible.add(en.target.id); else visible.delete(en.target.id);
+      });
+      var best = null, bestTop = Infinity;
+      visible.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var top = el.getBoundingClientRect().top;
+        if (top < bestTop) { bestTop = top; best = id; }
+      });
+      Object.keys(links).forEach(function (id) { links[id].classList.toggle("active", id === best); });
+    }, { rootMargin: "-70px 0px -65% 0px", threshold: 0 });
+    targets.forEach(function (t) { if (t.id) obs.observe(t); });
+  }
+
+  /* ---- print = expand all ---- */
+  function wirePrint() {
+    window.addEventListener("beforeprint", function () { allDetails().forEach(function (d) { d.open = true; }); });
+  }
+
+  /* ---- initial hash ---- */
+  function handleInitialHash() {
+    if (location.hash.length > 1) {
+      var id = decodeURIComponent(location.hash.slice(1));
+      setTimeout(function () { revealAndScroll(id); }, 60);
+    }
+  }
+
+  /* ---- mermaid (CDN, graceful fallback to source) ---- */
+  function initMermaid() {
+    var blocks = document.querySelectorAll(".mermaid");
+    if (!blocks.length) return;
+    // stash source for fallback
+    blocks.forEach(function (b) { if (!b.dataset.src) b.dataset.src = b.textContent; });
+    var theme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "default";
+    var s = document.createElement("script");
+    s.type = "module";
+    s.textContent =
+      'import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";' +
+      'mermaid.initialize({ startOnLoad: false, theme: "' + theme + '", securityLevel: "loose", flowchart:{useMaxWidth:true}, themeVariables:{ fontFamily: "inherit" } });' +
+      'try { await mermaid.run({ querySelector: ".mermaid" }); }' +
+      'catch (e) { document.querySelectorAll(".mermaid").forEach(function(b){ var f=b.closest("figure.diagram"); if(f) f.classList.add("failed"); }); }';
+    s.onerror = mermaidFail;
+    document.body.appendChild(s);
+    // safety net: if CDN blocked, reveal fallbacks after a delay
+    setTimeout(function () {
+      document.querySelectorAll(".mermaid").forEach(function (b) {
+        if (!b.querySelector("svg")) { var f = b.closest("figure.diagram"); if (f) f.classList.add("failed"); }
+      });
+    }, 4000);
+  }
+  function mermaidFail() {
+    document.querySelectorAll("figure.diagram").forEach(function (f) { f.classList.add("failed"); });
+  }
+
+  function escapeHTML(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+})();
+
+  </script>
+</body>
+</html>

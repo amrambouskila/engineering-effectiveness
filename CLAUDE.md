@@ -2,6 +2,8 @@
 
 ---
 
+<mandatory_workflow>
+
 > **MANDATORY WORKFLOW: READ THIS ENTIRE FILE BEFORE EVERY CHANGE.** Every time. No skimming, no assuming prior-session context carries over — it does not.
 >
 > **Why:** This project spans multiple sessions and months of development. Skipping the re-read produces decisions that contradict the architecture, duplicate existing patterns, break data contracts, or introduce tech debt that compounds.
@@ -14,7 +16,11 @@
 > 5. Read the source files you plan to modify — understand existing patterns first.
 > 6. Then implement, following the rules and contracts defined here.
 
+</mandatory_workflow>
+
 ---
+
+<critical_context>
 
 ## 0. Critical Context
 
@@ -29,7 +35,11 @@ The radar compresses project delivery history into five composite scores. Each s
 
 **Current phase: Phase 1 — React frontend with Chart.js radar, manual data entry, client-side scoring.**
 
+</critical_context>
+
 ---
+
+<project_identity>
 
 ## 1. Project Identity
 
@@ -39,7 +49,11 @@ The radar compresses project delivery history into five composite scores. Each s
 - **Location:** `engineering-effectiveness/`
 - **Existing artifact:** `effectiveness.jsx` — Phase 1 prototype visualization (JSX, pre-TypeScript). Reference for scoring logic and UI layout, but will be rewritten in TypeScript strict.
 
+</project_identity>
+
 ---
+
+<phase_constraints>
 
 ## 2. Phase Constraints
 
@@ -90,7 +104,11 @@ The radar compresses project delivery history into five composite scores. Each s
 - Service catalog integration
 - Embeddable widget for executive dashboards
 
+</phase_constraints>
+
 ---
+
+<architecture>
 
 ## 3. Architecture & Code Rules
 
@@ -127,7 +145,11 @@ The radar compresses project delivery history into five composite scores. Each s
 - No bare `catch` clauses. Catch specific types.
 - No swallowing errors silently.
 
+</architecture>
+
 ---
+
+<data_contracts>
 
 ## 4. Domain Model & Data Contracts
 
@@ -207,7 +229,11 @@ interface AggregateScores {
 
 **Data contract rule:** These interfaces define the Phase 2 API contract. `ProjectData` maps to the `PROJECT` database table. `RadarScores` maps to the `SCORE_SNAPSHOT` table. Do NOT simplify or rename fields — they match the backend schema by design.
 
+</data_contracts>
+
 ---
+
+<domain_model>
 
 ## 5. Required Calculations — Scoring Formulas
 
@@ -290,20 +316,28 @@ tier(score) =
 
 **Testing requirement:** Every formula above must have at least one test against a known analytical value. The sample data in `effectiveness.jsx` provides reference scores that can be used as test fixtures.
 
+</domain_model>
+
 ---
+
+<containerization>
 
 ## 6. Containerization
 
 ### Files in project root:
 - `Dockerfile` — Multi-stage: stage 1 (`node:20-alpine`) installs deps + builds Vite prod bundle; stage 2 (`nginx:alpine`) copies `dist/` and serves via `nginx.conf`.
-- `docker-compose.yml` — Single service (`engineering-effectiveness`) with port from `${EE_PORT:-5173}`.
+- `docker-compose.yml` — Single service (`engineering-effectiveness`) with port from `${EE_PORT:-5230}`.
 - `run_engineering_effectiveness.sh` / `run_engineering_effectiveness.bat` — Launcher scripts with `[k]/[q]/[v]/[r]` menu.
 
 ### Phase 1 Docker notes:
 - Single container serving static frontend (no backend dependency).
 - Phase 2+: `docker-compose.yml` gains backend, PostgreSQL, Redis services with healthchecks and `depends_on`.
 
+</containerization>
+
 ---
+
+<ci_cd>
 
 ## 7. CI/CD
 
@@ -320,17 +354,25 @@ tier(score) =
 - Conventional commits for semver bumps.
 - Release pipeline triggered manually on `main` with `BUMP` variable.
 
+</ci_cd>
+
 ---
+
+<environment>
 
 ## 8. Environment Configuration
 
 ```
 VITE_PORT=5173                                    # local dev server
-EE_PORT=5173                                      # Docker-exposed port
+EE_PORT=5230                                      # Docker-exposed port
 # VITE_API_BASE_URL=http://localhost:8000/api     # Phase 2 — forward-compat
 ```
 
+</environment>
+
 ---
+
+<testing>
 
 ## 9. Testing Requirements
 
@@ -350,7 +392,11 @@ EE_PORT=5173                                      # Docker-exposed port
 - Vitest does NOT auto-cleanup like Jest. `tests/setup.ts` must import `cleanup` from `@testing-library/react` and call it in `afterEach`.
 - React Bootstrap Modal renders portal duplicates in jsdom. Use `within(screen.getByRole("dialog"))` to scope queries.
 
+</testing>
+
 ---
+
+<file_structure>
 
 ## 10. Directory Structure & Key Entrypoints
 
@@ -424,7 +470,11 @@ engineering-effectiveness/
 └── .dockerignore
 ```
 
+</file_structure>
+
 ---
+
+<commands>
 
 ## 11. Local Commands
 
@@ -432,7 +482,7 @@ engineering-effectiveness/
 ```bash
 cd frontend
 pnpm install
-pnpm dev              # dev server at http://localhost:5173
+pnpm dev              # dev server at http://localhost:5230
 pnpm lint             # ESLint
 pnpm test             # Vitest
 pnpm test -- --coverage
@@ -446,7 +496,11 @@ docker compose down               # stop
 ./run_engineering_effectiveness.sh # full launcher with [k]/[q]/[v]/[r] menu
 ```
 
+</commands>
+
 ---
+
+<change_policy>
 
 ## 12. Change Policy
 
@@ -456,7 +510,11 @@ docker compose down               # stop
 4. **Data contract changes:** Require explicit approval. Update this file (Section 4) and the master plan.
 5. **New dependencies:** Document in a `docs/dependencies.md` when created.
 
+</change_policy>
+
 ---
+
+<versioning>
 
 ## 13. Versioning
 
@@ -466,7 +524,11 @@ docker compose down               # stop
 - **Document computed next version in `docs/versions.md`.**
 - **Only ONE unreleased version at a time.**
 
+</versioning>
+
 ---
+
+<definition_of_done>
 
 ## 14. Phase 1 Completion Gate
 
@@ -492,7 +554,11 @@ Phase 1 is done when:
 
 **Post-Phase 1:** Frontend connects to FastAPI + PostgreSQL backend (Phase 2). `localStorage` replaced with API calls. Scoring engine reimplemented in Python. Data contracts from Section 4 become the API contract.
 
+</definition_of_done>
+
 ---
+
+<phase_transition>
 
 ## 15. Phase 2 Integration Strategy
 
@@ -504,7 +570,11 @@ When Phase 2 lands:
 5. `RadarScores` interface becomes the `GET /api/scores/{teamId}` response shape.
 6. Python scoring engine must produce identical results to TS engine for the same inputs.
 
+</phase_transition>
+
 ---
+
+<self_audit>
 
 ## 16. Output & Completion Expectations
 
@@ -519,8 +589,14 @@ When completing a task, include:
 8. **Forward-compatibility check** — Alignment with Phase 2+ requirements.
 9. **Git state** — Report changed files. Suggest commit message.
 
+</self_audit>
+
 ---
+
+<closing_reminder>
 
 ## 17. Reminder
 
 **Re-read this file before the next change.** Re-read the master plan if the task involves scoring formulas, data contracts, or architecture. Check `docs/status.md` for current state. This frontend is Phase 1 of a 5-phase system; every decision must be compatible with what comes next.
+
+</closing_reminder>

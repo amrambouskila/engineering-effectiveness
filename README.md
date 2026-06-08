@@ -195,7 +195,7 @@ gantt
 ```bash
 ./run_engineering_effectiveness.sh    # macOS/Linux
 run_engineering_effectiveness.bat     # Windows
-# Opens http://localhost:5173
+# Opens http://localhost:5230
 # Interactive menu: [k] stop, [q] stop+cleanup, [v] full cleanup, [r] restart
 ```
 
@@ -204,7 +204,7 @@ run_engineering_effectiveness.bat     # Windows
 cd frontend
 pnpm install
 pnpm dev
-# http://localhost:5173
+# http://localhost:5230
 ```
 
 ---
