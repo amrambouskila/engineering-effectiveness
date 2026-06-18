@@ -363,9 +363,9 @@ tier(score) =
 ## 8. Environment Configuration
 
 ```
-VITE_PORT=5173                                    # local dev server
+EE_PORT=5230                                      # local Docker/frontend port
 EE_PORT=5230                                      # Docker-exposed port
-# VITE_API_BASE_URL=http://localhost:8000/api     # Phase 2 — forward-compat
+# VITE_API_BASE_URL=http://localhost:8243/api     # Phase 2 — forward-compat
 ```
 
 </environment>
