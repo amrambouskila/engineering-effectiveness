@@ -29,6 +29,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: lint
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     defaults:
       run:
         working-directory: frontend
@@ -39,7 +43,14 @@ jobs:
           node-version: "20"
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test -- --coverage --reporter=default --reporter=junit --outputFile.junit=junit.xml
+      - run: pnpm test -- --coverage --reporter=default --reporter=junit --outputFile.junit=junit-frontend.xml
+      - name: Publish test report
+        uses: dorny/test-reporter@v1
+        if: ${{ !cancelled() }}
+        with:
+          name: frontend tests
+          path: frontend/junit-frontend.xml
+          reporter: java-junit
 
   build:
     runs-on: ubuntu-latest
