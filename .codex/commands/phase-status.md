@@ -29,7 +29,9 @@ Before anything else:
 | Dockerfile builds | | |
 | docker-compose.yml works | | |
 | Launcher scripts work | | |
-| .gitlab-ci.yml pipeline | | |
+| .github/workflows/ci.yml pipeline (lint, sast, test, build, docker-build) | | |
+| SAST stage green — zero HIGH/CRITICAL findings; MEDIUM findings triaged with written justification | | |
+| New input boundaries in this phase are injection-safe and documented in `CLAUDE.md` `<security>` | | |
 | Scoring tests at 100% | | |
 | docs/ files current | | |
 

@@ -446,6 +446,49 @@ flowchart TD
 
 ---
 
+## Security Architecture
+
+Security is a cross-phase concern, not a phase. Two rules hold from the first pipeline commit through Phase 5; the binding detail (tool set, boundary table, defenses) lives in `CLAUDE.md` Section 9a `<security>` and is not duplicated here.
+
+### SAST stage — mandatory in every phase
+
+The CI pipeline carries a `sast` stage between `lint` and `test` that fails on any HIGH/CRITICAL finding. MEDIUM findings are triaged with a written justification. A pipeline without the stage, or with the stage set to `continue-on-error`, does not pass a phase gate.
+
+```mermaid
+flowchart LR
+    LINT["lint\nESLint + security plugins"] --> SAST["sast\nSemgrep · CodeQL · pnpm audit · gitleaks"]
+    SAST --> TEST["test\nVitest + coverage gate"]
+    TEST --> BUILD["build"]
+    BUILD --> DOCKER["docker-build\n+ Trivy HIGH/CRITICAL"]
+
+    style SAST fill:#991b1b,stroke:#7f1d1d,color:#fff
+    style DOCKER fill:#991b1b,stroke:#7f1d1d,color:#fff
+```
+
+| Layer | Tool | Phase introduced |
+|-------|------|------------------|
+| Cross-language SAST | Semgrep (SARIF → GitHub code scanning) + CodeQL | 1 |
+| Lint-time security rules | `eslint-plugin-security`, `eslint-plugin-no-unsanitized` | 1 |
+| Dependency audit | `pnpm audit --audit-level=high` | 1 |
+| Secret scanning | gitleaks | 1 |
+| Container scanning | Trivy in `docker-build` | 1 |
+| Python lint-time security rules | ruff `S` family (`select` gains `"S"`) | 2 |
+| Python dependency audit | `pip-audit` | 2 |
+
+### Injection-safety principles by component
+
+Every input boundary is typed and validated before its data reaches scoring or storage. Summary by component; the full table with per-boundary defenses is in `CLAUDE.md` Section 9a.
+
+- **Project entry form (Phase 1):** numeric and date fields validated at the form boundary; project names rendered only as React text nodes; Chart.js receives data, never markup.
+- **`localStorage` rehydration (Phase 1):** the persisted blob is untrusted — a type guard on every record at rehydration, failures dropped.
+- **Static hosting (Phase 1):** restrictive `Content-Security-Policy` in `nginx.conf`; no inline or eval'd scripts.
+- **REST API (Phase 2):** Pydantic v2 models are the only way in; SQLAlchemy bound parameters are the only way to the database; path ids typed as UUID; pagination and body-size caps; explicit CORS allowlist.
+- **Ingestion (Phase 3):** connector hosts allowlisted and private IPs rejected (SSRF); webhook signatures verified before parsing (forged scanner payloads would rewrite the Defense axis); CSV parsed with dtype enforcement, formula-prefixed cells rejected, size/row caps; uploaded file names replaced and path-confined.
+- **Embeddable widget (Phase 5):** `frame-ancestors` host allowlist; `postMessage` origin checks.
+- **No LLM or agent component is planned** — prompt injection does not apply; adding one requires a new boundary row before code lands.
+
+---
+
 ## Database Schema
 
 ```mermaid
@@ -543,6 +586,7 @@ gantt
     Define data dictionary & collection template   :p1a, 2026-05-01, 7d
     Collect data for 5-10 past projects (spreadsheet) :p1b, after p1a, 14d
     Deploy static radar chart (current React artifact) :p1c, after p1a, 7d
+    Wire sast stage (Semgrep + audit + gitleaks; Trivy in docker-build) :p1e, after p1c, 2d
     Manual CSV upload to radar                      :p1d, after p1b, 3d
     First team readout                              :milestone, after p1d, 0d
 
@@ -586,6 +630,11 @@ gantt
 - The React radar component (already built) consuming a JSON array.
 - A team-level readout: "Here is where we stand."
 
+**Gate criteria:**
+
+- SAST stage green — zero HIGH/CRITICAL findings; MEDIUM findings triaged with written justification.
+- New input boundaries in this phase are injection-safe and documented in `CLAUDE.md` `<security>`.
+
 **What you learn:** Whether the 10 fields are sufficient, whether the scoring weights feel right, and where the data gaps are.
 
 **Effort:** 1–2 weeks, 1 person.
@@ -600,6 +649,11 @@ gantt
 - REST API with endpoints for creating/reading/updating projects and fetching computed scores.
 - A basic web form for entering project data.
 - Scoring engine running server-side, returning computed axes on demand.
+
+**Gate criteria:**
+
+- SAST stage green — zero HIGH/CRITICAL findings; MEDIUM findings triaged with written justification.
+- New input boundaries in this phase are injection-safe and documented in `CLAUDE.md` `<security>`.
 
 **What you learn:** Whether the data model holds up across multiple teams. Whether the scoring engine produces believable results at scale.
 
@@ -616,6 +670,11 @@ gantt
 - CSV import pipeline for finance data (expected and actual revenue).
 - Validation UI where a PM can review auto-populated fields before they commit.
 
+**Gate criteria:**
+
+- SAST stage green — zero HIGH/CRITICAL findings; MEDIUM findings triaged with written justification.
+- New input boundaries in this phase are injection-safe and documented in `CLAUDE.md` `<security>`.
+
 **What you learn:** What percentage of data can be auto-populated, and which fields still require human judgment.
 
 **Effort:** 4–6 weeks, 2 engineers.
@@ -631,6 +690,11 @@ gantt
 - Per-project drill-down (click a project, see its individual radar).
 - Configurable threshold alerts: "If speed drops below 40, notify the engineering director."
 
+**Gate criteria:**
+
+- SAST stage green — zero HIGH/CRITICAL findings; MEDIUM findings triaged with written justification.
+- New input boundaries in this phase are injection-safe and documented in `CLAUDE.md` `<security>`.
+
 **What you learn:** Whether teams respond to the data, whether comparison drives improvement or defensiveness, whether thresholds are calibrated correctly.
 
 **Effort:** 4–5 weeks, 2 engineers.
@@ -645,6 +709,11 @@ gantt
 - Revenue attribution model integration with the BI layer.
 - Service catalog integration for intersecting projects and reusable components.
 - Embeddable widget that can drop into Confluence, SharePoint, or executive dashboards.
+
+**Gate criteria:**
+
+- SAST stage green — zero HIGH/CRITICAL findings; MEDIUM findings triaged with written justification.
+- New input boundaries in this phase are injection-safe and documented in `CLAUDE.md` `<security>`.
 
 **What you learn:** The steady-state operating cost of the system and whether it sustains itself without a dedicated operator.
 

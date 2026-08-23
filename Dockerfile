@@ -23,4 +23,9 @@ COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 
+# stock nginx needs root to bind :80 and write
+# /var/cache/nginx; switching to a non-root USER requires the unprivileged image and a port
+# change across compose + the launcher. Local-dev container, not a public-facing service:
+# exempt per global CLAUDE.md section 9. Revisit if this is ever exposed beyond localhost.
+# nosemgrep: dockerfile.security.missing-user.missing-user
 CMD ["nginx", "-g", "daemon off;"]

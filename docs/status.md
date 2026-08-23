@@ -23,6 +23,17 @@
 - Wire scoring engine to radar chart and UI components
 - Add aggregate view (all projects averaged)
 
+### Security
+- Security requirements are documented (CLAUDE.md Section 9a `<security>`, master plan Security section, per-phase gate lines) **and wired**:
+  - `sast` job in `.github/workflows/ci.yml` (`needs: lint`; `test` carries `needs: sast`): CodeQL `javascript-typescript`, `pipx run semgrep scan` with SARIF upload + fail-on-findings, `gitleaks/gitleaks-action@v2`, `pnpm audit --audit-level=high`
+  - Trivy (`aquasecurity/trivy-action@0.28.0`, `HIGH,CRITICAL`, `exit-code: 1`) against `engineering-effectiveness:ci` in `docker-build`, which now builds with `load: true`
+  - `eslint-plugin-security` + `eslint-plugin-no-unsanitized` in `frontend/eslint.config.js` (0 errors); `pnpm sast` script in `frontend/package.json`
+  - CSP in `nginx.conf` (`frame-ancestors 'self'`, matching the existing `X-Frame-Options: SAMEORIGIN`; the Phase 5 embed allowlist replaces it later), alongside the existing `nosniff` / `Referrer-Policy` headers
+- Still pending:
+  - `.semgrep/` repo rules directory
+  - The `ProjectData` type guard on zustand `persist` rehydration and form-boundary validation when the entry form lands
+  - Phase 2: ruff select gains `S`; `pip-audit` joins `sast`; CodeQL/Semgrep add Python
+
 ### Architectural Decisions
 - Zustand chosen over React Context for state — better devtools, middleware for localStorage, simpler API
 - Chart.js radar via react-chartjs-2 chosen over custom SVG — standardized, maintained, easier to theme

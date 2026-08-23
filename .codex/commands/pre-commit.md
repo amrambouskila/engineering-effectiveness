@@ -17,37 +17,43 @@ Before anything else:
 - Run `cd frontend && pnpm lint` (or check if linting passes)
 - Report: PASS / FAIL with details
 
-### 2. Test Check
+### 2. SAST Check (local parity with the `sast` CI stage)
+- Run from repo root: `semgrep scan --config auto --error` and `gitleaks detect --no-git --redact`
+- Run `cd frontend && pnpm audit --audit-level=high`
+- Report: PASS / FAIL — FAIL on any HIGH/CRITICAL finding; list MEDIUM findings with their written justification (missing justification = WARN)
+- Confirm every input boundary touched by this change is listed in `AGENTS.md` Section 9a `<security>` with its injection class(es) and defense
+
+### 3. Test Check
 - Run `cd frontend && pnpm test -- --coverage`
 - Report: PASS / FAIL
 - Report coverage percentage for `src/utils/scoring/`
 - Flag if below 100% threshold
 
-### 3. Type Check
+### 4. Type Check
 - Run `cd frontend && pnpm tsc --noEmit`
 - Report: PASS / FAIL with error details
 
-### 4. Build Check
+### 5. Build Check
 - Run `cd frontend && pnpm build`
 - Report: PASS / FAIL
 
-### 5. Code Review (abbreviated)
+### 6. Code Review (abbreviated)
 - Check for `any` types
 - Check for magic numbers in scoring logic
 - Check for unused imports
 - Check for dead code
 - Report findings
 
-### 6. Scoring Formula Validation
+### 7. Scoring Formula Validation
 - Verify all 5 formulas in `src/utils/scoring/` match AGENTS.md Section 5
 - Verify all constants match `scoringConstants.ts`
 - Report any discrepancies
 
-### 7. Data Contract Integrity
+### 8. Data Contract Integrity
 - Verify interfaces in `src/types/` match AGENTS.md Section 4
 - Report any drift
 
-### 8. Documentation Check
+### 9. Documentation Check
 - Verify `docs/status.md` reflects current state
 - Verify `docs/versions.md` has entry for this work
 - Report if outdated
@@ -57,6 +63,7 @@ Before anything else:
 | Check | Status |
 |-------|--------|
 | Lint | PASS/FAIL |
+| SAST | PASS/WARN/FAIL |
 | Tests | PASS/FAIL |
 | Types | PASS/FAIL |
 | Build | PASS/FAIL |

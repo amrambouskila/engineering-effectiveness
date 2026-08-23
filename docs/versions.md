@@ -1,5 +1,26 @@
 # Versions
 
+## v0.2.2 — Security Documentation
+
+**Type:** Patch (documentation, CI, and lint/static-serving configuration — no application runtime behavior change)
+
+- Added `<security>` section (9a) to CLAUDE.md/AGENTS.md: mandatory `sast` CI stage between `lint` and `test` (Semgrep + CodeQL + `pnpm audit` + gitleaks; Trivy in `docker-build`), input-boundary inventory with injection classes and required defenses, Phase 2 ruff `S` rules, local SAST parity commands, Security check added to the self-audit
+- Master plan: Security section with `lint → sast → test → build → docker-build` Mermaid diagram and tool matrix; SAST gate line + injection-safety gate line added to every phase's gate criteria
+- CLAUDE.md/AGENTS.md CI section and Phase 1 completion gate now list `sast` and the SAST/injection-safety gate items
+- Corrected CI provider references from `.gitlab-ci.yml` / GitLab CI to `.github/workflows/ci.yml` / GitHub Actions in CLAUDE.md, AGENTS.md, README.md, and `.codex/commands/phase-status.md`
+- `.codex/commands/pre-commit.md`: SAST audit step (Semgrep, gitleaks, `pnpm audit`, boundary-inventory check) and SAST verdict-table row
+- `.codex/commands/phase-status.md`: pipeline row lists all five stages; SAST gate and injection-safety gate rows added to the Phase 1 table
+- `docs/status.md`: Security section, rewritten into Wired / Pending once the wiring landed
+
+### Security wiring (same patch)
+
+- `.github/workflows/ci.yml`: new `sast` job (`needs: lint`, `permissions: security-events: write`) running CodeQL `javascript-typescript`, `pipx run semgrep scan --config auto --config p/owasp-top-ten --config p/typescript --config p/react --config p/docker --severity ERROR --error` with SARIF upload plus a fail-on-findings step, `gitleaks/gitleaks-action@v2`, and `pnpm audit --audit-level=high`. `test` now carries `needs: sast`. `docker-build` builds with `load: true` as `engineering-effectiveness:ci` and runs `aquasecurity/trivy-action@0.28.0` (`HIGH,CRITICAL`, `exit-code: 1`, `ignore-unfixed: true`)
+- `frontend/eslint.config.js`: added `eslint-plugin-security` + `eslint-plugin-no-unsanitized` (recommended configs); `pnpm lint` reports 0 errors
+- `nginx.conf`: added `Content-Security-Policy` (`script-src 'self'`; `style-src 'self' 'unsafe-inline'` for react-bootstrap/Chart.js inline style attributes; `frame-ancestors 'self'` to match the existing `X-Frame-Options: SAMEORIGIN` until the Phase 5 embed allowlist lands), keeping the existing `nosniff` / `Referrer-Policy` / `X-XSS-Protection` headers
+  - **Correction (same version): the headers above were dropped on static assets.** nginx inherits `add_header` only when the current level declares none of its own, and the static-asset regex location declares its own `add_header Cache-Control`, which removed all four security headers from those responses. They are now repeated inside that block. `nginx -t` passes on the repaired config.
+- `frontend/package.json`: added a `sast` script for local parity
+- Pending: `.semgrep/` rules; `ProjectData` rehydration type guard.
+
 ## v0.2.0 — Frontend Scaffold + Scoring Engine
 
 **Type:** Minor (new feature — frontend directory with full scoring implementation)

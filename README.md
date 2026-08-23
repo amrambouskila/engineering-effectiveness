@@ -183,7 +183,7 @@ gantt
 | Testing | Vitest + React Testing Library |
 | Package Manager | pnpm |
 | Container | Docker (multi-stage node + nginx) |
-| CI/CD | GitLab CI |
+| CI/CD | GitHub Actions (`.github/workflows/ci.yml`: lint → sast → test → build → docker-build) |
 | Backend (Phase 2) | FastAPI + SQLAlchemy + Pydantic |
 | Database (Phase 2) | PostgreSQL 16 |
 
@@ -238,7 +238,7 @@ engineering-effectiveness/
 ├── run_engineering_effectiveness.sh
 ├── run_engineering_effectiveness.bat
 ├── .gitignore
-└── .gitlab-ci.yml
+└── .github/workflows/                 # CI (lint → sast → test → build → docker-build) + release
 ```
 
 ---

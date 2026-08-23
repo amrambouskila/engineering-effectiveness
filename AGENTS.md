@@ -341,16 +341,17 @@ tier(score) =
 
 ## 7. CI/CD
 
-**File:** `.gitlab-ci.yml`
+**File:** `.github/workflows/ci.yml` (GitHub Actions — public repo; release automation in `.github/workflows/release.yml`)
 
 **Stages:**
 1. **lint** — `pnpm lint`. Fail on errors.
-2. **test** — `pnpm test -- --coverage`. Coverage gated at 100% for scoring utilities.
-3. **build** — `pnpm build`. Must compile without errors. Gated on test passing.
-4. **docker-build** — `docker build` to verify Dockerfile.
+2. **sast** — Semgrep (SARIF upload) + CodeQL + `pnpm audit --audit-level=high` + gitleaks. Fail on HIGH/CRITICAL. See Section 9a.
+3. **test** — `pnpm test -- --coverage`. Coverage gated at 100% for `src/utils/scoring/**` via `thresholds` in `vitest.config.ts`; the build fails below it. Overall coverage is reported, not gated.
+4. **build** — `pnpm build`. Must compile without errors. Gated on test passing.
+5. **docker-build** — `docker build` to verify Dockerfile, then Trivy (`HIGH,CRITICAL`, exit-code 1) against the image.
 
 **Requirements:**
-- All MRs must pass CI before merging.
+- All PRs must pass CI before merging.
 - Conventional commits for semver bumps.
 - Release pipeline triggered manually on `main` with `BUMP` variable.
 
@@ -377,7 +378,7 @@ EE_PORT=5230                                      # Docker-exposed port
 ## 9. Testing Requirements
 
 - **Framework:** Vitest + React Testing Library
-- **Coverage target:** 100% on scoring math (`src/utils/scoring/`). 100% overall target.
+- **Coverage target:** 100% on scoring math (`src/utils/scoring/`) — enforced by a `thresholds` block, currently met. 100% overall remains a target, not a gate (overall sits at ~85%; the UI/store layers are untested).
 - **What must be tested:**
   - All 5 scoring formulas against known analytical values
   - Tier classification at boundary values (44, 45, 74, 75)
@@ -393,6 +394,55 @@ EE_PORT=5230                                      # Docker-exposed port
 - React Bootstrap Modal renders portal duplicates in jsdom. Use `within(screen.getByRole("dialog"))` to scope queries.
 
 </testing>
+
+---
+
+<security>
+
+## 9a. Security — SAST Scanning & Injection Safety (Non-Negotiable)
+
+Applies global CLAUDE.md section 19 to this repo. Security is part of the Definition of Done for every task and of the pipeline for every phase.
+
+### SAST stage — required in the pipeline
+- `.github/workflows/ci.yml` MUST have a `sast` job between `lint` and `test` (`sast: needs: lint`; `test: needs: sast`) — **wired**. It fails on any HIGH/CRITICAL finding. MEDIUM findings are surfaced and triaged — fixed, or suppressed inline with a written justification. `continue-on-error: true` on the job is non-compliant.
+- Provider wiring is GitHub (public repo): CodeQL + Semgrep SARIF upload. The job declares `permissions: { contents: read, security-events: write, actions: read }`.
+- Tool set (TypeScript-only repo in Phase 1):
+  - **Semgrep** — wired: `pipx run semgrep scan --config auto --config p/owasp-top-ten --config p/typescript --config p/react --config p/docker --severity ERROR --error`; SARIF uploaded via `github/codeql-action/upload-sarif`, followed by a step that fails the job when Semgrep reported findings. A `.semgrep/` repo-rules directory does not exist yet — create it with the first repo-specific rule.
+  - **CodeQL** — wired: `github/codeql-action` init → analyze, language `javascript-typescript`.
+  - **ESLint security plugins** — wired: `frontend/eslint.config.js` extends `security.configs.recommended` + `noUnsanitized.configs.recommended`, so `eval`, `new Function`, raw `innerHTML`/`outerHTML`/`insertAdjacentHTML`, and unsafe regex fail `lint` (0 errors today). The `dangerouslySetInnerHTML` ban is enforced by review — `no-unsanitized` covers the DOM sinks, not the React prop.
+  > **Severity caveat (verified against the installed plugin):** every rule in `eslint-plugin-security`'s `recommended` config is `warn`, and this project's `lint` script is a bare `eslint .` with no `--max-warnings 0` — so those rules are *reported but cannot fail the build*. Only `eslint-plugin-no-unsanitized` (severity `error`, covering `innerHTML` / `outerHTML` / `insertAdjacentHTML` / `document.write`) actually gates today. Neither plugin covers `new Function` or the React `dangerouslySetInnerHTML` prop. To make the security rules gate, set them to `error` explicitly (and expect to triage `security/detect-object-injection`, which is noisy).
+  - **Dependency audit** — wired: `pnpm audit --audit-level=high` in `frontend/`, inside the `sast` job.
+  - **Secret scanning** — `gitleaks/gitleaks-action` over the tree, every run.
+  - **Container scanning** — `aquasecurity/trivy-action` with `severity: HIGH,CRITICAL`, `exit-code: 1`, in the `docker-build` job against the freshly built image (`docker/build-push-action` must `load: true` so the image is scannable).
+- **Phase 2 (Python backend) additions:** ruff lint select becomes `["E", "F", "I", "N", "UP", "ANN", "S"]` (`S101` ignored in `tests/` only); `uv run pip-audit` joins the `sast` job; CodeQL adds `python`; Semgrep adds `p/python`.
+- **Local parity** (same set the pipeline runs; `/pre-commit` reports findings in its verdict table):
+  ```bash
+  semgrep scan --config auto --error            # repo root
+  gitleaks detect --no-git --redact             # repo root
+  cd frontend && pnpm audit --audit-level=high
+  ```
+  `frontend/package.json` has a `sast` script wrapping these (`pnpm sast`). Semgrep and gitleaks are not project dependencies — install them on the host first.
+
+### Injection safety — input boundary inventory
+Every boundary below treats its input as hostile until it crosses a typed validation boundary. Phase 2+ rows are the planned boundaries from Sections 2 and 15; their defenses are binding when those phases land.
+
+| Boundary | Where | Injection classes | Required defense |
+|----------|-------|-------------------|------------------|
+| Project entry form (10 fields) | `features/projects/` entry form → `useProjectStore.addProject` / `updateProject` | XSS (`name` rendered in table, radar labels, derivation panel); resource exhaustion / type confusion (non-finite numbers, huge values) | Validate at the form boundary: ISO `YYYY-MM-DD` + `Date` parse for both dates; `Number.isSafeInteger`, `>= 0` for revenue/breach/vuln/intersecting/reusable, `>= 1` for phases; bounded `name` length. Render only via React text nodes — no `dangerouslySetInnerHTML`. Chart.js labels are data strings, never HTML. |
+| `localStorage` rehydration | `stores/projectStore.ts` (zustand `persist`, key `ee-project-store`) | Unsafe deserialization (blob is writable by devtools / any script on the origin); type confusion | The rehydrated blob is untrusted: `persist` `merge` (or `migrate` with `version`) runs a `ProjectData` type guard on every record and drops records that fail, logging the count. Never `eval`/`Function` on stored content. |
+| Static hosting | `nginx.conf`, `Dockerfile` | XSS, clickjacking, MIME sniffing | **Wired:** `nginx.conf` sends `Content-Security-Policy` — `default-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'`. `style-src 'self' 'unsafe-inline'` is the only permitted relaxation (react-bootstrap and Chart.js set inline `style` attributes); `unsafe-inline` / `unsafe-eval` for scripts never. Keep `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`. Phase 2 adds `connect-src` for the backend origin. |
+| Environment variables | `EE_PORT`, `VITE_API_BASE_URL` (docker-compose, Vite build) | SSRF / open redirect via a baked-in API base | Build-time constants only. The Phase 2 API client validates `VITE_API_BASE_URL` is an absolute `http(s)` URL at startup and only requests paths it constructs itself — never a user-supplied URL. |
+| Phase 2 REST API (planned) | `POST /api/projects`, `GET /api/scores/{teamId}` — FastAPI + SQLAlchemy 2.0 async + Pydantic v2 | SQL, auth/secrets, resource exhaustion, header/log | Pydantic v2 request/response models are the Section 4 contracts; SQLAlchemy bound parameters only (`text()` only with `:named` binds — no f-strings/`format`); `teamId` typed as `UUID` in the path; pagination caps on list endpoints; uvicorn/nginx body-size limits; CORS is an explicit origin allowlist; strip `\r\n` from anything echoed to headers or logs; structured logging. |
+| Phase 3 ingestion (planned) | Jira/ADO connectors (outbound `httpx`), SonarQube/Snyk webhook receiver, finance CSV import | SSRF (connector base URLs), auth (webhook forgery), unsafe deserialization / CSV formula injection, path traversal, resource exhaustion | Connector hosts from an env allowlist, redirects disabled, private/loopback IPs rejected after DNS resolution; webhook signatures verified with `hmac.compare_digest` before the body is parsed; CSV parsed with dtype enforcement, cells beginning `= + - @` rejected, streamed with size/row caps; uploaded file names replaced by generated ids and resolved under the import base (`resolve().is_relative_to(base)`). |
+| Phase 5 embeddable widget (planned) | Confluence / SharePoint / executive-dashboard embed | Clickjacking, `postMessage` origin spoofing | `frame-ancestors` becomes an explicit host allowlist (replacing `'self'`); every `postMessage` listener checks `event.origin` against the same allowlist. |
+
+### Project-specific additions
+- **No LLM calls, no agents** in any planned phase — prompt injection is not applicable. If a model is ever introduced, this section gains a prompt-injection row before the code lands.
+- **Scoring integrity is a security property.** Phase 3 webhook payloads write `vulnerabilities` and CSV imports write revenue fields, which feed Defense, Accuracy, and Strength directly. A forged webhook or tampered CSV manipulates a score; webhook authentication and CSV validation are therefore gate items, not nice-to-haves.
+- **Revenue and breach-cost fields are confidential financial data.** Never emit them to logs, error messages, or analytics; Phase 2 responses carry them only to authenticated callers.
+- The task-completion self-audit (Section 16) now includes a **Security check** item.
+
+</security>
 
 ---
 
@@ -466,7 +516,7 @@ engineering-effectiveness/
 ├── run_engineering_effectiveness.bat
 ├── .env
 ├── .gitignore
-├── .gitlab-ci.yml
+├── .github/workflows/              # ci.yml (lint → sast → test → build → docker-build), release.yml
 └── .dockerignore
 ```
 
@@ -487,6 +537,13 @@ pnpm lint             # ESLint
 pnpm test             # Vitest
 pnpm test -- --coverage
 pnpm build            # production build
+```
+
+**Security scan (local parity with the `sast` stage):**
+```bash
+semgrep scan --config auto --error            # repo root
+gitleaks detect --no-git --redact             # repo root
+cd frontend && pnpm audit --audit-level=high
 ```
 
 **With Docker:**
@@ -548,7 +605,9 @@ Phase 1 is done when:
 - Dockerfile builds a valid production image
 - `docker-compose.yml` starts the container
 - Launcher scripts work (`run_engineering_effectiveness.{sh,bat}`)
-- `.gitlab-ci.yml` runs lint, test, build, docker-build
+- `.github/workflows/ci.yml` runs lint, sast, test, build, docker-build
+- SAST green with zero HIGH/CRITICAL findings (`sast` stage + Trivy in `docker-build`); MEDIUM findings triaged with written justification
+- All input boundaries injection-safe and documented in Section 9a `<security>`
 - Tests cover all scoring formulas at 100%
 - All `docs/` files current
 
@@ -588,6 +647,7 @@ When completing a task, include:
 7. **Test check** — Tests added or updated for logic changes.
 8. **Forward-compatibility check** — Alignment with Phase 2+ requirements.
 9. **Git state** — Report changed files. Suggest commit message.
+10. **Security check** — Local SAST clean (Semgrep + `pnpm audit` + gitleaks); every touched input boundary names its injection class(es) and defense; Section 9a `<security>` updated if a boundary was added.
 
 </self_audit>
 
