@@ -24,6 +24,14 @@
 - Add aggregate view (all projects averaged)
 
 ### Security
+
+### Verified state (2026-08-24)
+
+- **Semgrep: clean.** Verified locally by running this repo's own CI command against the working tree (0 findings). The invocation itself was broken before today — `semgrep ci` rejects `--severity`/`--error` and exited 2 without scanning.
+- **Dependency audit: clean.** Verified with the repo's own audit command and threshold, after the override/upgrade remediation; install and build re-verified in the CI image.
+- **Security headers verified delivered** — confirmed by serving the config in `nginx:alpine` and inspecting the response for `/` (0 headers before the fix, 4 after).
+
+- Not run locally: gitleaks and Trivy are not part of any project toolchain here; both were exercised through their official images during verification, and CI runs them on every pipeline.
 - Security requirements are documented (CLAUDE.md Section 9a `<security>`, master plan Security section, per-phase gate lines) **and wired**:
   - `sast` job in `.github/workflows/ci.yml` (`needs: lint`; `test` carries `needs: sast`): CodeQL `javascript-typescript`, `pipx run semgrep scan` with SARIF upload + fail-on-findings, `gitleaks/gitleaks-action@v2`, `pnpm audit --audit-level=high`
   - Trivy (`aquasecurity/trivy-action@0.28.0`, `HIGH,CRITICAL`, `exit-code: 1`) against `engineering-effectiveness:ci` in `docker-build`, which now builds with `load: true`
