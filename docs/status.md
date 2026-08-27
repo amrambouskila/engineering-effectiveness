@@ -25,14 +25,41 @@
 
 ### Security
 
+### Verified state (2026-08-27)
+
+- **`docker-build` unblocked.** `.github/workflows/ci.yml` referenced
+  `aquasecurity/trivy-action@0.28.0`. That ref is not a typo -- Aqua **deleted every unprefixed tag**
+  when migrating the repo to a `v` prefix as part of their response to the trivy-action supply-chain
+  attack, so it stopped resolving and the job failed at "Set up job" in ~2s, before buildx or the
+  image build ever ran. Pinned to `aquasecurity/trivy-action@v0.36.0` (latest; ships Trivy v0.70.0).
+  All four inputs (`image-ref`, `severity`, `exit-code`, `ignore-unfixed`) are unchanged and
+  non-deprecated at that version, and no `permissions:` block is needed -- the repo default (`read`)
+  already covers `setup-trivy`'s checkout of the public `aquasecurity/trivy` repo, and
+  `actions/cache` authenticates via `ACTIONS_RUNTIME_TOKEN`, not `GITHUB_TOKEN`.
+- **The image builds and scans clean.** Verified against a pristine `git archive HEAD` export --
+  unlike the working tree it carries no `frontend/node_modules`, which is what the CI checkout looks
+  like. The image builds through the plain builder and through a buildx `docker-container` builder
+  with `--load` (the exact path `docker/build-push-action@v6` takes), including a
+  `--no-cache --pull` cold build that matches the cold GHA cache the first corrected run will have.
+  Trivy **v0.70.0** -- the exact version the action installs -- reports **0 vulnerabilities** under
+  `--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1`, exit 0, on all three images. The same
+  scan against the `nginx:alpine` base reports **2 HIGH** (`CVE-2026-14456`), so the
+  `apk upgrade --no-cache` layer is confirmed to be what clears them. The container serves `/` with
+  HTTP 200.
+- **Every `uses:` ref in `ci.yml` was re-resolved** against the GitHub API; all nine resolve.
+- Point-in-time caveat: alpine advisories change daily, so `exit-code: 1` can turn this job red in a
+  future run with no repo change. That is the cost of the gate, not a defect.
+
 ### Verified state (2026-08-26)
 
 - **Alpine base-image CVEs patched at build time.** `CVE-2026-14456` (`libcrypto3`/`libssl3`
   3.5.7-r0, HIGH, fixed 3.5.8-r0) is cleared by an `apk upgrade` layer in the runtime stage --
   measured on the base image as 2 HIGH before, 0 after. The base scanned clean two days earlier,
   so the layer exists to stop a future advisory from becoming a pipeline failure.
-- **No image scan runs in this repo's CI**, so nothing here was gating; the change is
-  preventive and no per-image scan result is claimed.
+- **The CI image scan existed but had never executed.** The `docker-build` Trivy step was added
+  2026-08-23 with an action ref that could not resolve, so the job died at "Set up job" and nothing
+  was gating. Corrected 2026-08-27 (see the block above); the `apk upgrade` layer is now measured
+  against the built image, not only against the base.
 
 ### Verified state (2026-08-24)
 
@@ -43,7 +70,7 @@
 - Not run locally: gitleaks and Trivy are not part of any project toolchain here; both were exercised through their official images during verification, and CI runs them on every pipeline.
 - Security requirements are documented (CLAUDE.md Section 9a `<security>`, master plan Security section, per-phase gate lines) **and wired**:
   - `sast` job in `.github/workflows/ci.yml` (`needs: lint`; `test` carries `needs: sast`): CodeQL `javascript-typescript`, `pipx run semgrep scan` with SARIF upload + fail-on-findings, `gitleaks/gitleaks-action@v2`, `pnpm audit --audit-level=high`
-  - Trivy (`aquasecurity/trivy-action@0.28.0`, `HIGH,CRITICAL`, `exit-code: 1`) against `engineering-effectiveness:ci` in `docker-build`, which now builds with `load: true`
+  - Trivy (`aquasecurity/trivy-action@v0.36.0`, `HIGH,CRITICAL`, `exit-code: 1`, `ignore-unfixed: true`) against `engineering-effectiveness:ci` in `docker-build`, which builds with `load: true`
   - `eslint-plugin-security` + `eslint-plugin-no-unsanitized` in `frontend/eslint.config.js` (0 errors); `pnpm sast` script in `frontend/package.json`
   - CSP in `nginx.conf` (`frame-ancestors 'self'`, matching the existing `X-Frame-Options: SAMEORIGIN`; the Phase 5 embed allowlist replaces it later), alongside the existing `nosniff` / `Referrer-Policy` headers
 - Still pending:

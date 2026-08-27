@@ -2,6 +2,43 @@
 
 ## v0.2.2 — Security Documentation
 
+### `docker-build` CI job fixed -- unresolvable Trivy action ref (2026-08-27)
+
+- **`aquasecurity/trivy-action@0.28.0` -> `@v0.36.0` in `.github/workflows/ci.yml`.** The
+  `docker-build` job had failed on every run since 2026-08-23 with
+  `Unable to resolve action aquasecurity/trivy-action@0.28.0, unable to find version 0.28.0`,
+  dying at "Set up job" in ~2s -- before buildx, the image build, or the scan ever ran. The ref is
+  not a typo: Aqua **deleted every unprefixed tag** when migrating the repo to a `v` prefix as part
+  of their response to the trivy-action supply-chain attack, keeping only `0.35.0` as a
+  compatibility shim. `refs/tags/0.28.0` now 404s; `refs/tags/v0.36.0` resolves.
+- **Why v0.36.0 rather than v0.28.0.** v0.28.0 pins Trivy v0.56.1, whose only vulnerability-DB
+  source is `ghcr.io/aquasecurity/trivy-db` -- the endpoint behind the well-documented
+  `TOOMANYREQUESTS` CI failures. v0.36.0 ships Trivy v0.70.0, which defaults to a priority list
+  (`mirror.gcr.io/aquasec/trivy-db:2`, then GHCR); the verification runs below pulled from the GCR
+  mirror. Re-pinning to `v0.28.0` would have been the smaller diff and the worse choice.
+- **Nothing else needed to change.** All four inputs (`image-ref`, `severity`, `exit-code`,
+  `ignore-unfixed`) remain current and non-deprecated at v0.36.0, so the `with:` block is untouched.
+  No `permissions:` block is required: the repo default is `read`, the composite action's only token
+  consumer (`setup-trivy`) checks out the public `aquasecurity/trivy` repo, and `actions/cache`
+  authenticates via `ACTIONS_RUNTIME_TOKEN` rather than `GITHUB_TOKEN`.
+- **Verified, not assumed.** Built from a pristine `git archive HEAD` export, which -- unlike the
+  working tree -- has no `frontend/node_modules`, matching the CI checkout. The image builds through
+  both the plain builder and the buildx `docker-container` driver with `--load` (the exact path
+  `docker/build-push-action@v6` takes), including a `--no-cache --pull` cold build matching the cold
+  GHA cache the first corrected run will have. Trivy **v0.70.0**, the exact version the action
+  installs, reports **0 vulnerabilities** at `HIGH,CRITICAL` with `--ignore-unfixed --exit-code 1`,
+  exit 0, on all three images.
+  The same scan of the `nginx:alpine` base reports **2 HIGH** (`CVE-2026-14456`), which confirms the
+  `apk upgrade --no-cache` layer is what clears them -- now measured on the shipped image rather than
+  only on the base. The container serves `/` with HTTP 200. Every `uses:` ref in `ci.yml` was
+  re-resolved against the GitHub API; all nine resolve.
+- **Point-in-time caveat.** Alpine advisories change daily, so `exit-code: 1` can turn `docker-build`
+  red in a future run with no repo change. That is the cost of the gate, not a defect.
+
+**Semver reasoning:** Patch. A CI configuration fix plus its documentation. No application code,
+dependency, host port, API or data contract, and no test changed.
+
+
 ### Base-image security patch for the alpine runtime stage (2026-08-26)
 
 - **`RUN apk upgrade --no-cache` added to `Dockerfile`.** The `nginx:alpine` base currently ships
@@ -14,9 +51,10 @@
   observation, not a property, which is precisely why the patch layer belongs in the Dockerfile
   rather than being skipped on the strength of a past scan. This is the alpine counterpart to the
   `apt-get upgrade` layer the Debian bases already carry.
-- **Not gated by CI here.** This repo's pipeline has no `trivy image` step, so the layer is
-  preventive hardening rather than a fix for a failing stage. The base-image measurement
-  above is what supports it; no image scan is claimed for this repo.
+- **Not gated by CI at the time** -- and the stated reason was wrong. This entry claimed the
+  pipeline had no `trivy image` step; in fact one had been added on 2026-08-23, but its action ref
+  did not resolve, so it had never executed and nothing was gating. Corrected in the 2026-08-27
+  entry above, where the layer is measured against the built image.
 
 **Semver reasoning:** Patch. A build-time base-image security patch. No application code,
 dependency, host port, API or data contract, and no test changed.
